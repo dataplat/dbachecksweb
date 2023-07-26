@@ -1,8 +1,8 @@
 # Change baseurl before deploy
-baseurl = "https://blog.robsewell.com"
+baseurl = "https://dbachecks.io"
 languageCode = "en"
 paginate = 5
-title = "Rob Sewell (aka SQL DBA With A Beard)"
+title = "dbachecks"
 
 # Theme i18n support
 # Available values: en, fr, id, ja, ko, pt-br, zh-cn, zh-tw, es, de, nl, it, th, el, uk, ar
