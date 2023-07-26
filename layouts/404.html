@@ -1,0 +1,15 @@
+{{ define "main" }}
+    <h1>404 Page Not Found</h1>
+    <p>We're sorry, but the page you're looking for cannot be found.</p>
+    <p>Here are some possible posts related to your search:</p>
+    <ul>
+        {{ range $.Site.RegularPages }}
+            {{ $title := .Title }}
+            {{ $url := .Permalink }}
+            {{ $search := .Title | lower | replaceRE "[^a-z]+" " " }}
+            {{ if or (strings.Contains $search (lower .Site.Params.s)) (strings.Contains $search (lower .Site.Params.singular)) (strings.Contains $search (lower .Site.Params.plural)) }}
+                <li><a href="{{ $url }}">{{ $title }}</a></li>
+            {{ end }}
+        {{ end }}
+    </ul>
+{{ end }}

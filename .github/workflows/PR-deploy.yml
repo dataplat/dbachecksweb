@@ -1,0 +1,46 @@
+name: Build and Deploy PR Preview
+
+# From this post:
+  # https://rmoff.net/2022/04/06/using-github-actions-to-build-automagic-hugo-previews-of-draft-articles/
+
+on:
+  pull_request:
+
+  workflow_dispatch:
+
+jobs:
+  build_preview:
+    runs-on: ubuntu-latest
+
+    env:
+      HUGO_VERSION: 0.102.3
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Install Hugo CLI
+      run: |
+        wget -O ${{ runner.temp }}/hugo.deb https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_Linux-64bit.deb \
+        && sudo dpkg -i ${{ runner.temp }}/hugo.deb
+    - name: Setup base URL env var
+      run: |
+        export PRNUMBER=$(jq --raw-output .pull_request.number "$GITHUB_EVENT_PATH")
+        echo BASEURL="https://SQLDBAWithABeard-blogrobsewell-build_preview-pr-"$PRNUMBER".surge.sh/" >> $GITHUB_ENV
+    - name: Report base URL env var
+      run: echo "${{ env.BASEURL }}"
+
+    - name: Build
+      # working-directory: content
+      run: hugo --minify --baseURL "${{ env.BASEURL }}" --buildDrafts --buildFuture
+
+    - name: Deploy
+      uses: afc163/surge-preview@v1
+      id: preview_step
+      with:
+        surge_token: ${{ secrets.SURGE_TOKEN }}
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        dist: public
+        failOnError: 'true'
+        teardown: true
+        build: |
+          echo Deploying to surge.sh
