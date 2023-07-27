@@ -2,6 +2,6 @@
 layout: redirected
 sitemap: false
 redirect_to:
-  - https://github.com/sqlcollaborative/dbachecks/graphs/contributors
+  - https://github.com/dataplat/dbachecks/graphs/contributors
 permalink: /contributors
 ---

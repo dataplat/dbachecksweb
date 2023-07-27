@@ -1,13 +1,13 @@
 ---
 title: "Version Update, Code Signing and publishing to the PowerShell Gallery with VSTS"
-date: "2018-05-01" 
+date: "2018-05-01"
 categories:
   - Blog
 
 tags:
   - dbachecks
   - dbatools
-  - GitHub 
+  - GitHub
   - pester
   - PowerShell
   - psconfeu
@@ -16,7 +16,7 @@ tags:
 image: assets/uploads/2018/05/32-Dashboard.png
 
 ---
-At the fabulous [PowerShell Conference EU](http://psconf.eu) I presented about Continuous Delivery to the PowerShell Gallery with VSTS and explained how we use VSTS to enable CD for [dbachecks](http://dbachecks.io). We even released a new version during the session 🙂 
+At the fabulous [PowerShell Conference EU](http://psconf.eu) I presented about Continuous Delivery to the PowerShell Gallery with VSTS and explained how we use VSTS to enable CD for [dbachecks](http://dbachecks.io). We even released a new version during the session 🙂
 
 <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Next on <a href="https://twitter.com/sqldbawithbeard?ref_src=twsrc%5Etfw">@sqldbawithbeard</a> presenting &quot;Continuous delivery for modules to the PowerShell gallery&quot; <a href="https://twitter.com/hashtag/PSConfEU?src=hash&amp;ref_src=twsrc%5Etfw">#PSConfEU</a> <a href="https://t.co/AubbhdewQv">pic.twitter.com/AubbhdewQv</a></p>&mdash; Fabian Bader (@fabian_bader) <a href="https://twitter.com/fabian_bader/status/986871659750678530?ref_src=twsrc%5Etfw">April 19, 2018</a></blockquote> <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
 
@@ -76,7 +76,7 @@ i chose the hosted queue but you can download an agent to your build server if y
 Run Unit Tests with Pester
 --------------------------
 
-We have a number of Unit tests in our [tests folder in dbachecks](https://github.com/sqlcollaborative/dbachecks/tree/development/tests) so we want to run them to ensure that everything is as it should be and the new code will not break existing functionality (and for dbachecks the [format of the PowerBi](/using-the-ast-in-pester-for-dbachecks/))
+We have a number of Unit tests in our [tests folder in dbachecks](https://github.com/dataplat/dbachecks/tree/development/tests) so we want to run them to ensure that everything is as it should be and the new code will not break existing functionality (and for dbachecks the [format of the PowerBi](/using-the-ast-in-pester-for-dbachecks/))
 
 You can use the [Pester Test Runner Build Task](https://marketplace.visualstudio.com/items?itemName=richardfennellBM.BM-VSTS-PesterRunner-Task) from the folk at [Black Marble](http://blackmarble.com/) by clicking on the + sign next to Phase 1 and searching for Pester
 
@@ -121,7 +121,7 @@ catch {
 \# Install dbatools
 try {
     Write-Output "Installing PSFramework"
-    Install-Module PSFramework  -RequiredVersion $PsFrameworkVersion  -Scope CurrentUser -Force 
+    Install-Module PSFramework  -RequiredVersion $PsFrameworkVersion  -Scope CurrentUser -Force
     Write-Output "Installed PSFramework"
 
 }
@@ -131,7 +131,7 @@ catch {
 \# Install dbachecks
 try {
     Write-Output "Installing dbatools"
-    Install-Module dbatools  -RequiredVersion $dbatoolsVersion  -Scope CurrentUser -Force 
+    Install-Module dbatools  -RequiredVersion $dbatoolsVersion  -Scope CurrentUser -Force
     Write-Output "Installed dbatools"
 
 }
@@ -143,7 +143,7 @@ catch {
 try {
     Write-Output "Adding local folder to PSModulePath"
     $ENV:PSModulePath = $ENV:PSModulePath + ";$pwd"
-    Write-Output "Added local folder to PSModulePath"    
+    Write-Output "Added local folder to PSModulePath"
     $ENV:PSModulePath.Split(';')
 }
 catch {
@@ -220,11 +220,11 @@ Again choose an empty process and name it sensibly, click the + sign next to Pha
 
 I change the version to 2 and use this code. Note that the commit message has \*\*\*NO_CI\*\*\* in it. Putting this in a commit message tells VSTS not to trigger a build for this commit.
 
-$manifest = Import-PowerShellDataFile .\\dbachecks.psd1 
+$manifest = Import-PowerShellDataFile .\\dbachecks.psd1
 \[version\]$version = $Manifest.ModuleVersion
 Write-Output "Old Version - $Version"
 \# Add one to the build of the version number
-\[version\]$NewVersion = "{0}.{1}.{2}" -f $Version.Major, $Version.Minor, ($Version.Build + 1) 
+\[version\]$NewVersion = "{0}.{1}.{2}" -f $Version.Major, $Version.Minor, ($Version.Build + 1)
 Write-Output "New Version - $NewVersion"
 \# Update the manifest file
 try {
@@ -244,7 +244,7 @@ git config user.name "SQLDBAWithABeard"
 git add .\\dbachecks.psd1
 git commit -m "Updated Version Number to $NewVersion \*\*\*NO_CI\*\*\*"
 
-git push https://$(RobsGitHubPAT)@github.com/sqlcollaborative/dbachecks.git HEAD:master
+git push https://$(RobsGitHubPAT)@github.com/dataplat/dbachecks.git HEAD:master
 Write-Output "Updated GitHub "
 
 }
@@ -386,11 +386,11 @@ for the release definitions, click the environment and then options and integrat
 
 [![34 - Release Badge](assets/uploads/2018/05/34-Release-Badge.png)](assets/uploads/2018/05/34-Release-Badge.png)
 
-You can then copy the URL and use it in your readme [like this on dbachecks](https://github.com/sqlcollaborative/dbachecks)
+You can then copy the URL and use it in your readme [like this on dbachecks](https://github.com/dataplat/dbachecks)
 
 [![35 - dbachecks readme badges.png](assets/uploads/2018/05/35-dbachecks-readme-badges.png)](assets/uploads/2018/05/35-dbachecks-readme-badges.png)
 
-The SQL Collaborative has joined the preview of enabling public access to VSTS projects as [detailed in this blog post](https://blogs.msdn.microsoft.com/devops/2018/04/27/vsts-public-projects-limited-preview/) So you can [see the dbachecks build and release without the need to log in](https://sqlcollaborative.visualstudio.com/dbachecks/dbachecks%20Team/_build) and soon [the dbatools process as well](https://sqlcollaborative.visualstudio.com/dbatools/_build)
+The SQL Collaborative has joined the preview of enabling public access to VSTS projects as [detailed in this blog post](https://blogs.msdn.microsoft.com/devops/2018/04/27/vsts-public-projects-limited-preview/) So you can [see the dbachecks build and release without the need to log in](https://dataplat.visualstudio.com/dbachecks/dbachecks%20Team/_build) and soon [the dbatools process as well](https://dataplat.visualstudio.com/dbatools/_build)
 
 I hope you found this useful and if you have any questions or comments please feel free to contact me
 

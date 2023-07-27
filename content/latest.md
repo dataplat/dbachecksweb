@@ -1,5 +1,5 @@
 ---
 title: latest
 type: "redirect"
-redirect: https://github.com/sqlcollaborative/dbachecks/releases/latest
+redirect: https://github.com/dataplat/dbachecks/releases/latest
 ---

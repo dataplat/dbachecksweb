@@ -1,5 +1,5 @@
 ---
 title: pulls
 type: "redirect"
-redirect: https://github.com/sqlcollaborative/dbachecks/pulls
+redirect: https://github.com/dataplat/dbachecks/pulls
 ---

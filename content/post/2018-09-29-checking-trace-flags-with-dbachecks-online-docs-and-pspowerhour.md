@@ -1,6 +1,6 @@
 ---
 title: "Checking Trace Flags with dbachecks, online docs and PSPowerHour"
-date: "2018-09-29" 
+date: "2018-09-29"
 categories:
   - dbachecks
   - Blog
@@ -30,7 +30,7 @@ The PowerShell community members [Michael T Lombardi](https://twitter.com/barba
 
 You can watch the videos on the [Youtube channel](https://www.youtube.com/channel/UCtHKcGei3EjxBNYQCFZ3WNQ) and keep an eye out for more online [PSPowerHours via twitter](https://twitter.com/hashtag/PSPowerHoursrc=hash) or [the GitHub page](https://github.com/PSPowerHour/PSPowerHour).
 
-While watching the first group of sessions [Andrew Wickham](https://twitter.com/awickham) demonstrated using dbatools with trace flags and I thought that needs to be added to dbachecks so I created [an issue.](https://github.com/sqlcollaborative/dbachecks/issues/529) Anyone can do this to file improvements as well as bugs for members of the team to code.
+While watching the first group of sessions [Andrew Wickham](https://twitter.com/awickham) demonstrated using dbatools with trace flags and I thought that needs to be added to dbachecks so I created [an issue.](https://github.com/dataplat/dbachecks/issues/529) Anyone can do this to file improvements as well as bugs for members of the team to code.
 
 Trace Flags
 -----------
@@ -87,7 +87,7 @@ Invoke-DbcCheck -Check TraceFlagsExpecte
 
 and gives you the error message
 
->  \[-\] Expected Trace Flags 1117 exist on sql0 593ms  
+>  \[-\] Expected Trace Flags 1117 exist on sql0 593ms
 > Expected 1117 to be found in collection @(), because We expect that Trace Flag 1117 will be set on sql0, but it was not found.
 
 So we have a failing test. We need to fix that. We can use [dbatools](http://dbatools.io)
@@ -127,7 +127,7 @@ It will fail as 1117 is still running
 
 and give the message
 
-> \[-\] Expected Trace Flags 1117 to not exist on sql0 321ms  
+> \[-\] Expected Trace Flags 1117 to not exist on sql0 321ms
 > Expected 1117 to not be found in collection 1117, because We expect that Trace Flag 1117 will not be set on sql0, but it was found.
 
 So to resolve this failing check we need to disable the trace flag and we can do that with dbatools using

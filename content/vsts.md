@@ -1,5 +1,5 @@
 ---
 title: vsts
 type: "redirect"
-redirect: https://sqlcollaborative.visualstudio.com/dbachecks/_build/index?definitionId=3
+redirect: https://dataplat.visualstudio.com/dbachecks/_build/index?definitionId=3
 ---

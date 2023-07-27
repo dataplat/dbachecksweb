@@ -1,5 +1,5 @@
 ---
 title: contributors
 type: "redirect"
-redirect: https://github.com/sqlcollaborative/dbachecks/graphs/contributors
+redirect: https://github.com/dataplat/dbachecks/graphs/contributors
 ---

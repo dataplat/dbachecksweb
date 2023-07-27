@@ -2,6 +2,6 @@
 layout: redirected
 sitemap: false
 redirect_to:
-  - https://github.com/sqlcollaborative/dbachecks
+  - https://github.com/dataplat/dbachecks
 permalink: /index.html
 ---

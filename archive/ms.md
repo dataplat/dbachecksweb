@@ -2,6 +2,6 @@
 layout: redirected
 sitemap: false
 redirect_to:
-  - https://github.com/sqlcollaborative/dbachecks/milestones
+  - https://github.com/dataplat/dbachecks/milestones
 permalink: /ms
 ---

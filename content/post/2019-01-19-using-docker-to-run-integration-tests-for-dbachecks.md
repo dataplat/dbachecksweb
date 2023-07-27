@@ -1,6 +1,6 @@
 ---
 title: "Using Docker to run Integration Tests for dbachecks"
-date: "2019-01-19" 
+date: "2019-01-19"
 categories:
   - dbachecks
   - Blog
@@ -12,7 +12,7 @@ tags:
   - dbachecks
   - dbatools
   - docker
-  - GitHub 
+  - GitHub
   - pester
   - PowerShell
   - test
@@ -20,12 +20,12 @@ tags:
 ---
 My wonderful friend [André Kamman](https://twitter.com/AndreKamman) wrote a fantastic blog post this week [SQL Server Container Instances via Cloudshell](https://andrekamman.com/sql-server-container-instances-via-cloudshell/) about how he uses containers in Azure to test code against different versions of SQL Server.
 
-It reminded me that I do something very similar to test [dbachecks](http://dbachecks.io) code changes. I thought this might make a good blog post. I will talk through how I do this locally as I merge a PR from another great friend [Cláudio Silva](https://github.com/ClaudioESSilva) who has added [agent job history checks.](https://github.com/sqlcollaborative/dbachecks/pull/582)
+It reminded me that I do something very similar to test [dbachecks](http://dbachecks.io) code changes. I thought this might make a good blog post. I will talk through how I do this locally as I merge a PR from another great friend [Cláudio Silva](https://github.com/ClaudioESSilva) who has added [agent job history checks.](https://github.com/dataplat/dbachecks/pull/582)
 
 GitHub PR VS Code Extension
 ---------------------------
 
-I use the [GitHub Pull Requests extension for VS Code](https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github) to work with pull requests for [dbachecks](https://github.com/sqlcollaborative/dbachecks/pulls). This enables me to see all of the information about the Pull Request, merge it, review it, comment on it all from VS Code
+I use the [GitHub Pull Requests extension for VS Code](https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github) to work with pull requests for [dbachecks](https://github.com/dataplat/dbachecks/pulls). This enables me to see all of the information about the Pull Request, merge it, review it, comment on it all from VS Code
 
 ![](https://blog.robsewell.com/assets/uploads/2019/01/GitHub-Pull-Request-VsCode-Extension.png)
 
@@ -50,7 +50,7 @@ The first thing that I do is to run the Unit Tests for the module. These will te
 
 I navigate to the root of the dbachecks repository on my local machine and run
 
-     $testresults = Invoke-Pester .\tests -ExcludeTag Integration -Show Fails -PassThru 
+     $testresults = Invoke-Pester .\tests -ExcludeTag Integration -Show Fails -PassThru
 
 and after about a minute
 
@@ -80,32 +80,32 @@ Docker Compose Up ?
 So what is this magic command that has enabled me to do this? docker compose uses a YAML file to define multi-container applications. This means that with a file called docker-compose.yml like [this](https://gist.github.com/SQLDBAWithABeard/b589d499484af4ebfb7d637cb6b4efa3)
 
     version: '3.7'
-    
+
     services:
         sql2012:
             image: dbafromthecold/sqlserver2012dev:sp4
-            ports:  
+            ports:
               - "15589:1433"
             environment:
               SA_PASSWORD: "Password0!"
               ACCEPT_EULA: "Y"
         sql2014:
             image: dbafromthecold/sqlserver2014dev:sp2
-            ports:  
+            ports:
               - "15588:1433"
             environment:
               SA_PASSWORD: "Password0!"
               ACCEPT_EULA: "Y"
         sql2016:
             image: dbafromthecold/sqlserver2016dev:sp2
-            ports:  
+            ports:
               - "15587:1433"
             environment:
               SA_PASSWORD: "Password0!"
               ACCEPT_EULA: "Y"
         sql2017:
             image: microsoft/    mssql-server-windows-developer:2017-latest
-            ports:  
+            ports:
               - "15586:1433"
             environment:
               SA_PASSWORD: "Password0!"
@@ -136,7 +136,7 @@ I run this code
 
 and then I can create a credential object using
 
-    $cred = Import-Clixml $CredentialPath 
+    $cred = Import-Clixml $CredentialPath
 
 Check The Connections
 ---------------------
@@ -146,7 +146,7 @@ I ensure a clean session by removing the dbatools and dbachecks modules and then
     $dbacheckslocalpath = 'GIT:\dbachecks\'
     Remove-Module dbatools, dbachecks -ErrorAction SilentlyContinue
     Import-Module $dbacheckslocalpath\dbachecks.psd1
-    $cred = Import-Clixml $CredentialPath 
+    $cred = Import-Clixml $CredentialPath
     $containers = 'localhost,15589', 'localhost,15588', 'localhost,    15587', 'localhost,15586'
 
 Now I can start to run my Integration tests. First reset the dbachecks configuration and set some configuration values
@@ -187,14 +187,14 @@ Choose some Integration Tests
 This check is checking the Agent job history settings and the unit tests are
 
 *   It “Passes Check Correctly with Maximum History Rows disabled (-1)”
-*   It “Fails Check Correctly with Maximum History Rows disabled (-1) but configured value is 1000”  
-    
-*   It “Passes Check Correctly with Maximum History Rows being 10000”  
-    
-*   It “Fails Check Correctly with Maximum History Rows being less than 10000”  
-    
-*   It “Passes Check Correctly with Maximum History Rows per job being 100”  
-    
+*   It “Fails Check Correctly with Maximum History Rows disabled (-1) but configured value is 1000”
+
+*   It “Passes Check Correctly with Maximum History Rows being 10000”
+
+*   It “Fails Check Correctly with Maximum History Rows being less than 10000”
+
+*   It “Passes Check Correctly with Maximum History Rows per job being 100”
+
 *   It “Fails Check Correctly with Maximum History Rows per job being less than 100”
 
 So we will check the same things on real actual SQL Servers. First though we need to start the SQL Server Agent as it is not started by default. We can do this as follows
@@ -311,7 +311,7 @@ There is another integration test there for the error logs count. This works in 
     # set a value and then it will fail
     $null = Set-DbcConfig -Name policy.errorlog.logcount -Value 10
     $errorlogscountconfigchanged = Invoke-DbcCheck -SqlCredential     $cred -Check ErrorLogCount -Show None  -PassThru
-    
+
     # set the value and then it will pass
     $null = Set-DbaErrorLogConfig -SqlInstance $containers     -SqlCredential $cred -LogCount 10
     $errorlogscountvaluechanged = Invoke-DbcCheck -SqlCredential     $cred -Check ErrorLogCount -Show None  -PassThru
@@ -320,7 +320,7 @@ There is another integration test there for the error logs count. This works in 
 Merge the Changes
 -----------------
 
-So with all the tests passing I can merge the PR into the development branch and Azure DevOps will start a build. Ultimately, I would like to add the integration to the build as well following [André](https://twitter.com/AndreKamman)‘s blog post but for now I used the GitHub Pull Request extension to merge the pull request into development which started a [build](https://sqlcollaborative.visualstudio.com/dbachecks/_build/results?buildId=365&view=results) and then merged that into master which signed the code and deployed it to the PowerShell gallery as you can see [here](https://sqlcollaborative.visualstudio.com/dbachecks/_releaseProgress?_a=release-environment-logs&releaseId=81&environmentId=81) and the result is
+So with all the tests passing I can merge the PR into the development branch and Azure DevOps will start a build. Ultimately, I would like to add the integration to the build as well following [André](https://twitter.com/AndreKamman)‘s blog post but for now I used the GitHub Pull Request extension to merge the pull request into development which started a [build](https://dataplat.visualstudio.com/dbachecks/_build/results?buildId=365&view=results) and then merged that into master which signed the code and deployed it to the PowerShell gallery as you can see [here](https://dataplat.visualstudio.com/dbachecks/_releaseProgress?_a=release-environment-logs&releaseId=81&environmentId=81) and the result is
 
 [https://www.powershellgallery.com/packages/dbachecks/1.1.164](https://www.powershellgallery.com/packages/dbachecks/1.1.164)
 

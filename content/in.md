@@ -1,5 +1,5 @@
 ---
 title: in
 type: "redirect"
-redirect: https://raw.githubusercontent.com/sqlcollaborative/dbachecks/master/install.ps1
+redirect: https://raw.githubusercontent.com/dataplat/dbachecks/master/install.ps1
 ---

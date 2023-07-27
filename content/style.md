@@ -1,5 +1,5 @@
 ---
 title: style
 type: "redirect"
-redirect: https://github.com/sqlcollaborative/dbachecks/wiki/Style-Guide
+redirect: https://github.com/dataplat/dbachecks/wiki/Style-Guide
 ---

@@ -1,6 +1,6 @@
 ---
 title: "How to fork a GitHub repository and contribute to an open source project"
-date: "2019-11-29" 
+date: "2019-11-29"
 categories:
   - Blog
   - Source Control
@@ -13,7 +13,7 @@ tags:
   - adsnotebook
   - dbachecks
   - dbatools
-  - GitHub 
+  - GitHub
   - PowerShell
   - Open Source
 
@@ -21,7 +21,7 @@ tags:
 image: assets/uploads/2019/11/CreatePR.png
 
 ---
-I enjoy maintaining open source GitHub repositories such as [dbachecks](https://github.com/sqlcollaborative/dbachecks) and [ADSNotebook](https://github.com/sqlcollaborative/ADSNotebook). I absolutely love it when people add more functionality to them.
+I enjoy maintaining open source GitHub repositories such as [dbachecks](https://github.com/dataplat/dbachecks) and [ADSNotebook](https://github.com/dataplat/ADSNotebook). I absolutely love it when people add more functionality to them.
 
 To collaborate with a repository in GitHub you need to follow these steps
 
@@ -43,7 +43,7 @@ Fork the repository into your own GitHub
 
 A fork is a copy of the original repository. This allows you to make changes without affecting the original project. It does not get updated when the original project gets updated (We will talk about that in the next post) This enables you to code a new feature or a bug fix, test it locally and make sure it is working.
 
-Let’s take dbachecks as our example. Start by going to the project in GiHub. In this case the URL is [https://github.com/sqlcollaborative/dbachecks](https://github.com/sqlcollaborative/dbachecks) You will see a Fork button at the top right of the page
+Let’s take dbachecks as our example. Start by going to the project in GiHub. In this case the URL is [https://github.com/dataplat/dbachecks](https://github.com/dataplat/dbachecks) You will see a Fork button at the top right of the page
 
 ![](https://blog.robsewell.com/assets/uploads/2019/11/image-41.png?fit=630%2C74&ssl=1)
 
@@ -169,7 +169,7 @@ At the command line you can push the branch, if you do that, you will have to te
 
     fatal: The current branch AwesomeNewFeature has no upstream branch.
     To push the current branch and set the remote as upstream, use
-    
+
         git push --set-upstream origin AwesomeNewFeature
 
 So you will need to use that command
@@ -197,7 +197,7 @@ You click that and let GitHub do its magic
 
 and it will create a Pull Request for you ready for you to fill in the required information, ask for reviewers and other options. Once you have done that you can click `Create pull request` and wait for the project maintainer to review it and (hopefully) accept it into their project
 
-You can find the Pull Request that I created here [https://github.com/sqlcollaborative/dbachecks/pull/720](https://github.com/sqlcollaborative/dbachecks/pull/720) and see how the rest of this blog post was created.
+You can find the Pull Request that I created here [https://github.com/dataplat/dbachecks/pull/720](https://github.com/dataplat/dbachecks/pull/720) and see how the rest of this blog post was created.
 
 ![](https://blog.robsewell.com/assets/uploads/2019/11/image-66.png?fit=630%2C489&ssl=1)
 
@@ -244,10 +244,10 @@ You can contribute other open source projects like
 
 *   **[PowerShell](https://github.com/PowerShell/PowerShell)** by Microsoft
 *   **[tigertoolbox](https://github.com/microsoft/tigertoolbox)** by Microsoft Tiger Team
-*   [dbatools](https://github.com/sqlcollaborative/dbatools)
-*   [dbachecks](https://github.com/sqlcollaborative/dbachecks)
-*   [ADSNotebook](https://github.com/sqlcollaborative/ADSNotebook)
-*   [PSDatabaseClone](https://github.com/sqlcollaborative/PSDatabaseClone)
+*   [dbatools](https://github.com/dataplat/dbatools)
+*   [dbachecks](https://github.com/dataplat/dbachecks)
+*   [ADSNotebook](https://github.com/dataplat/ADSNotebook)
+*   [PSDatabaseClone](https://github.com/dataplat/PSDatabaseClone)
 *   **[OpenQueryStore](https://github.com/OpenQueryStore/OpenQueryStore)** by William Durkin and Enrico van de Laar
 *   **[sqlwatch](https://github.com/marcingminski/sqlwatch)** by Marcin Gminski
 *   [SQLCop](https://github.com/red-gate/SQLCop) by Redgate
