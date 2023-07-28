@@ -17,7 +17,7 @@ image: assets/uploads/2023/datasaturdayoslo-session.jpeg
 ---
 # dbachecks v3 at Data Saturday Oslo
 
-[![dbachecksv3](datasaturdayoslo-session.jpeg)](https://datasaturdays.com/2023-09-02-datasaturday0035/)
+[![dbachecksv3](assets/uploads/2023/datasaturdayoslo-session.jpeg)](https://datasaturdays.com/2023-09-02-datasaturday0035/)
 
 On Saturday September 2nd 2023, will be [Data Saturday Oslo](https://datasaturdays.com/2023-09-02-datasaturday0035/) in Oslo, Norway.
 
