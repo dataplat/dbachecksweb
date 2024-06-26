@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Dbatool on dbachecks</title><link>https://dbachecks.io/tags/dbatool/</link><description>Recent content in Dbatool on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Mon, 28 May 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/tags/dbatool/index.xml" rel="self" type="application/rss+xml"/><item><title>dbachecks – Dark Mode Historical Validation PowerBi</title><link>https://dbachecks.io/blog/dbachecks-dark-mode-historical-validation-powerbi/</link><pubDate>Mon, 28 May 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/dbachecks-dark-mode-historical-validation-powerbi/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2018/05/dark-mode.png" alt="Featured image of post dbachecks – Dark Mode Historical Validation PowerBi" />&lt;p>in &lt;a class="link" href="https://dbachecks.io/dbachecks-save-the-results-to-a-database-for-historical-reporting/" >my last post&lt;/a> I showed how you can save the results of dbachecks to a database and created a PowerBi report. Inspired by Frank Henninger in the #dbachecks slack channel and &lt;a class="link" href="https://twitter.com/wsmelton" target="_blank" rel="noopener"
+>Shawn Melton&lt;/a> who explained the difficulties with red/green colour blind I then created this one 🙂&lt;/p>
+&lt;p>&lt;a class="link" href="assets/uploads/2018/05/dark-mode.png" >&lt;img src="https://dbachecks.io/assets/uploads/2018/05/dark-mode.png"
+loading="lazy"
+alt="dark mode"
+>&lt;/a>&lt;/p>
+&lt;p>You can find it in my &lt;a class="link" href="https://github.com/SQLDBAWithABeard/dbachecks-expanded" target="_blank" rel="noopener"
+>GitHub&lt;/a> and have a play with it below&lt;/p>
+&lt;!-- raw HTML omitted --></description></item></channel></rss>
