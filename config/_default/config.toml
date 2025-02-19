@@ -1,7 +1,7 @@
 # Change baseurl before deploy
 baseurl = "https://dbachecks.io"
 languageCode = "en"
-paginate = 5
+pagerSize  = 5
 title = "dbachecks"
 
 # Theme i18n support
