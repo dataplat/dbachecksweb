@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>SQL Agent Jobs on dbachecks</title><link>https://dbachecks.io/tags/sql-agent-jobs/</link><description>Recent content in SQL Agent Jobs on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Tue, 23 Jan 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/tags/sql-agent-jobs/index.xml" rel="self" type="application/rss+xml"/><item><title>How to run a PowerShell script file with Verbose, Confirm or WhatIf</title><link>https://dbachecks.io/blog/how-to-run-a-powershell-script-file-with-verbose-confirm-or-whatif/</link><pubDate>Tue, 23 Jan 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/how-to-run-a-powershell-script-file-with-verbose-confirm-or-whatif/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2018/01/02-Showing-the-results.png" alt="Featured image of post How to run a PowerShell script file with Verbose, Confirm or WhatIf" />&lt;p>Before you run a PowerShell command that makes a change to something you should check that it is going to do what you expect. You can do this by using the WhatIf parameter for commands that support it. For example, if you wanted to create a New SQL Agent Job Category you would use the &lt;a class="link" href="http://dbatools.io" target="_blank" rel="noopener"
+>awesome dbatools module&lt;/a> and write some code like this&lt;/p>
+&lt;pre>&lt;code>New-DbaAgentJobCategory -SqlInstance ROB-XPS -Category 'Backup'
+&lt;/code>&lt;/pre>
+&lt;p>before you run it, you can check what it is going to do using&lt;/p>
+&lt;pre>&lt;code>New-DbaAgentJobCategory -SqlInstance ROB-XPS -Category 'Backup' -WhatIf
+&lt;/code>&lt;/pre>
+&lt;p>which gives a result like this&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/01-Whatif.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>This makes it easy to do at the command line but when we get confident with PowerShell we will want to write scripts to perform tasks using more than one command. So how can we ensure that we can check that those will do what we are expecting without actually running the script and see what happens? Of course, there are Unit and integration testing that should be performed using &lt;a class="link" href="https://blog.robsewell.com/writing-dynamic-and-random-tests-cases-for-pester/" target="_blank" rel="noopener"
+>Pester&lt;/a> when developing the script but there will still be occasions when we want to see what this script will do this time in this environment.&lt;/p>
+&lt;p>Lets take an example. We want to place our SQL Agent jobs into specific custom categories depending on their name. We might write a script like this&lt;/p>
+&lt;pre>&lt;code>&amp;lt;#
+.SYNOPSIS
+Adds SQL Agent Jobs to categories and creates the categories if needed
+.DESCRIPTION
+Adds SQL Agent Jobs to categories and creates the categories if needed. Creates
+Backup', 'Index', 'TroubleShooting','General Info Gathering' categories and adds
+the agent jobs depending on name to the category
+.PARAMETER Instance
+The Instance to run the script against
+#&amp;gt;
+Param(
+[string]$Instance
+)
+$Categories = 'Backup', 'Index','DBCC', 'TroubleShooting', 'General Info Gathering'
+$Categories.ForEach{
+## Create Category if it doesnot exist
+If (-not (Get-DbaAgentJobCategory -SqlInstance $instance -Category $PSItem)) {
+New-DbaAgentJobCategory -SqlInstance $instance -Category $PSItem -CategoryType LocalJob
+}
+}
+## Get the agent jobs and iterate through them
+(Get-DbaAgentJob -SqlInstance $instance).ForEach{
+## Depending on the name of the Job - Put it in a Job Category
+switch -Wildcard ($PSItem.Name) {
+'*DatabaseBackup*' {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category 'Backup'
+}
+'*Index*' {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category 'Index'
+}
+'*DatabaseIntegrity*' {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category 'DBCC'
+}
+'*Log SP_*' {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category 'TroubleShooting'
+}
+'*Collection*' {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category 'General Info Gathering'
+}
+## Otherwise put it in the uncategorised category
+Default {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category '[Uncategorized (Local)]'
+}
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>You can run this script against any SQL instance by calling  it and passing an instance parameter from the command line like this&lt;/p>
+&lt;pre>&lt;code> &amp;amp; C:\temp\ChangeJobCategories.ps1 -instance ROB-XPS
+&lt;/code>&lt;/pre>
+&lt;p>If you wanted to see what would happen, you could edit the script and add the WhatIf parameter to every changing command but that’s not really a viable solution. What you can do is&lt;/p>
+&lt;pre>&lt;code>$PSDefaultParameterValues['*:WhatIf'] = $true
+&lt;/code>&lt;/pre>
+&lt;p>this will set all commands that accept WhatIf to use the WhatIf parameter. This means that if you are using functions that you have written internally you must ensure that you write your functions to use the common parameters&lt;/p>
+&lt;p>Once you have set the default value for WhatIf as above, you can simply call your script and see the WhatIf output&lt;/p>
+&lt;pre>&lt;code> &amp;amp; C:\temp\ChangeJobCategories.ps1 -instance ROB-XPS
+&lt;/code>&lt;/pre>
+&lt;p>which will show the WhatIf output for the script&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/02-Showing-the-results.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>Once you have checked that everything is as you expected then you can remove the default value for the WhatIf parameter and run the script&lt;/p>
+&lt;pre>&lt;code>$PSDefaultParameterValues['*:WhatIf'] = $false
+&amp;amp; C:\temp\ChangeJobCategories.ps1 -instance ROB-XPS
+&lt;/code>&lt;/pre>
+&lt;p>and get the expected output&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/03-run-the-script-1.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>If you wish to see the verbose output or ask for confirmation before any change you can set those default parameters like this&lt;/p>
+&lt;pre>&lt;code>## To Set Verbose output
+$PSDefaultParameterValues['*:Verbose'] = $true
+## To Set Confirm
+$PSDefaultParameterValues['*:Confirm'] = $true
+&lt;/code>&lt;/pre>
+&lt;p>and set them back by setting to false&lt;/p></description></item></channel></rss>
