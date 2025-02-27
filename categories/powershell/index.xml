@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>PowerShell on dbachecks</title><link>https://dbachecks.io/categories/powershell/</link><description>Recent content in PowerShell on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 19 Jan 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/categories/powershell/index.xml" rel="self" type="application/rss+xml"/><item><title>Using Docker to run Integration Tests for dbachecks</title><link>https://dbachecks.io/blog/using-docker-to-run-integration-tests-for-dbachecks/</link><pubDate>Sat, 19 Jan 2019 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/using-docker-to-run-integration-tests-for-dbachecks/</guid><description>&lt;p>My wonderful friend &lt;a class="link" href="https://twitter.com/AndreKamman" target="_blank" rel="noopener"
+>André Kamman&lt;/a> wrote a fantastic blog post this week &lt;a class="link" href="https://andrekamman.com/sql-server-container-instances-via-cloudshell/" target="_blank" rel="noopener"
+>SQL Server Container Instances via Cloudshell&lt;/a> about how he uses containers in Azure to test code against different versions of SQL Server.&lt;/p>
+&lt;p>It reminded me that I do something very similar to test &lt;a class="link" href="http://dbachecks.io" target="_blank" rel="noopener"
+>dbachecks&lt;/a> code changes. I thought this might make a good blog post. I will talk through how I do this locally as I merge a PR from another great friend &lt;a class="link" href="https://github.com/ClaudioESSilva" target="_blank" rel="noopener"
+>Cláudio Silva&lt;/a> who has added &lt;a class="link" href="https://github.com/dataplat/dbachecks/pull/582" target="_blank" rel="noopener"
+>agent job history checks.&lt;/a>&lt;/p>
+&lt;h2 id="github-pr-vs-code-extension">GitHub PR VS Code Extension
+&lt;/h2>&lt;p>I use the &lt;a class="link" href="https://marketplace.visualstudio.com/items?itemName=GitHub.vscode-pull-request-github" target="_blank" rel="noopener"
+>GitHub Pull Requests extension for VS Code&lt;/a> to work with pull requests for &lt;a class="link" href="https://github.com/dataplat/dbachecks/pulls" target="_blank" rel="noopener"
+>dbachecks&lt;/a>. This enables me to see all of the information about the Pull Request, merge it, review it, comment on it all from VS Code&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/GitHub-Pull-Request-VsCode-Extension.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>I can also see which files have been changed and which changes have been made&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/viewing-a-change.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>Once I am ready to test the pull request I perform a checkout using the extension&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/checkout-pull-request-checkout.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>This will update all of the files in my local repository with all of the changes in this pull request&lt;/p>
+&lt;p>&lt;!-- raw HTML omitted -->&lt;!-- raw HTML omitted -->&lt;/p>
+&lt;p>You can see at the bottom left that the branch changes from development to the name of the PR.&lt;a class="link" href="https://blog.robsewell.com/version-update-code-signing-and-publishing-to-the-powershell-gallery-with-vsts/" target="_blank" rel="noopener"
+>&lt;/a>&lt;/p>
+&lt;h2 id="running-the-unit-tests">Running The Unit Tests
+&lt;/h2>&lt;p>The first thing that I do is to run the Unit Tests for the module. These will test that the code is following all of the guidelines that we require and that the tests are formatted in the correct way for the Power Bi to parse. I have blogged about this &lt;a class="link" href="https://blog.robsewell.com/using-the-ast-in-pester-for-dbachecks/" target="_blank" rel="noopener"
+>here&lt;/a> and &lt;a class="link" href="https://blog.robsewell.com/using-the-powershell-ast-to-find-a-foreach-method/" target="_blank" rel="noopener"
+>here&lt;/a> and we use this Pester in our CI process in Azure DevOps which I described &lt;a class="link" href="https://blog.robsewell.com/version-update-code-signing-and-publishing-to-the-powershell-gallery-with-vsts/" target="_blank" rel="noopener"
+>here.&lt;/a>&lt;/p>
+&lt;p>I navigate to the root of the dbachecks repository on my local machine and run&lt;/p>
+&lt;pre>&lt;code> $testresults = Invoke-Pester .\tests -ExcludeTag Integration -Show Fails -PassThru
+&lt;/code>&lt;/pre>
+&lt;p>and after about a minute&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/pester-tests.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>Thank you Cláudio, the code has passed the tests 😉&lt;/p>
+&lt;h2 id="running-some-integration-tests">Running Some Integration Tests
+&lt;/h2>&lt;p>The difference between Unit tests and Integration tests in a nutshell is that the Unit tests are testing that the code is doing what is expected without any other external influences whilst the Integration tests are checking that the code is doing what is expected when running on an actual environment. In this scenario we know that the code is doing what is expected but we want to check what it does when it runs against a SQL Server and even when it runs against multiple SQL Servers of different versions.&lt;/p>
+&lt;h2 id="multiple-versions-of-sql-server">Multiple Versions of SQL Server
+&lt;/h2>&lt;p>As I have described &lt;a class="link" href="https://blog.robsewell.com/creating-sql-server-containers-for-versions-2012-2017/" target="_blank" rel="noopener"
+>before&lt;/a> my friend and former colleague Andrew Pruski &lt;a class="link" href="http://dbafromthecold.com" target="_blank" rel="noopener"
+>b&lt;/a> | &lt;a class="link" href="http://twitter.com/dbafromthecold" target="_blank" rel="noopener"
+>t&lt;/a> has many resources for running SQL in containers. This means that I can quickly and easily create fresh uncontaminated instances of SQL 2012, 2014, 2016 and 2017 really quickly.&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/creating-contatiners.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>I can create 4 instances of different versions of SQL in (a tad over) 1 minute. How about you?&lt;/p>
+&lt;p>Imagine how long it would take to run the installers for 4 versions of SQL and the pain you would have trying to uninstall them and make sure everything is ‘clean’. Even images that have been sysprep’d won’t be done in 1 minute.&lt;/p>
+&lt;h2 id="docker-compose-up-">Docker Compose Up ?
+&lt;/h2>&lt;p>So what is this magic command that has enabled me to do this? docker compose uses a YAML file to define multi-container applications. This means that with a file called docker-compose.yml like &lt;a class="link" href="https://gist.github.com/SQLDBAWithABeard/b589d499484af4ebfb7d637cb6b4efa3" target="_blank" rel="noopener"
+>this&lt;/a>&lt;/p>
+&lt;pre>&lt;code>version: '3.7'
+services:
+sql2012:
+image: dbafromthecold/sqlserver2012dev:sp4
+ports:
+- &amp;quot;15589:1433&amp;quot;
+environment:
+SA_PASSWORD: &amp;quot;Password0!&amp;quot;
+ACCEPT_EULA: &amp;quot;Y&amp;quot;
+sql2014:
+image: dbafromthecold/sqlserver2014dev:sp2
+ports:
+- &amp;quot;15588:1433&amp;quot;
+environment:
+SA_PASSWORD: &amp;quot;Password0!&amp;quot;
+ACCEPT_EULA: &amp;quot;Y&amp;quot;
+sql2016:
+image: dbafromthecold/sqlserver2016dev:sp2
+ports:
+- &amp;quot;15587:1433&amp;quot;
+environment:
+SA_PASSWORD: &amp;quot;Password0!&amp;quot;
+ACCEPT_EULA: &amp;quot;Y&amp;quot;
+sql2017:
+image: microsoft/ mssql-server-windows-developer:2017-latest
+ports:
+- &amp;quot;15586:1433&amp;quot;
+environment:
+SA_PASSWORD: &amp;quot;Password0!&amp;quot;
+ACCEPT_EULA: &amp;quot;Y&amp;quot;
+&lt;/code>&lt;/pre>
+&lt;p>and in that directory just run&lt;/p>
+&lt;pre>&lt;code>docker-compose up -d
+&lt;/code>&lt;/pre>
+&lt;p>and 4 SQL containers are available to you. You can interact with them via SSMS if you wish with localhost comma PORTNUMBER. The port numbers in the above file are 15586, 15587,15588 and 15589&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/containers.png?resize=630%2C188&amp;amp;ssl=1"
+loading="lazy"
+>](&lt;a class="link" href="https://blog.robsewell.com/assets/uploads/2019/01/containers.png?ssl=1" target="_blank" rel="noopener"
+>https://blog.robsewell.com/assets/uploads/2019/01/containers.png?ssl=1&lt;/a>)&lt;/p>
+&lt;p>Now it must be noted, as I &lt;a class="link" href="https://blog.robsewell.com/creating-sql-server-containers-for-versions-2012-2017/" target="_blank" rel="noopener"
+>describe here&lt;/a> that first I pulled the images to my laptop. The first time you run docker compose will take significantly longer if you haven’t pulled the images already (pulling the images will take quite a while depending on your broadband speed)&lt;/p>
+&lt;h2 id="credential">Credential
+&lt;/h2>&lt;p>The next thing is to save a credential to make it easier to automate.&lt;del>I use the method described by my PowerShell friend Jaap Brasser &lt;a class="link" href="https://www.jaapbrasser.com/quickly-and-securely-storing-your-credentials-powershell/" target="_blank" rel="noopener"
+>here&lt;/a>.&lt;/del>&lt;/p>
+&lt;p>EDIT (September or is it March? 2020) - Nowadays I use the Secret Management Module&lt;/p>
+&lt;p>I run this code&lt;/p>
+&lt;pre>&lt;code> $CredentialPath = 'C:\MSSQL\BACKUP\KEEP\sacred.xml'
+Get-Credential | Export-Clixml -Path $CredentialPath
+&lt;/code>&lt;/pre>
+&lt;p>and then I can create a credential object using&lt;/p>
+&lt;pre>&lt;code>$cred = Import-Clixml $CredentialPath
+&lt;/code>&lt;/pre>
+&lt;h2 id="check-the-connections">Check The Connections
+&lt;/h2>&lt;p>I ensure a clean session by removing the dbatools and dbachecks modules and then import the local version of dbachecks and set some variables&lt;/p>
+&lt;pre>&lt;code>$dbacheckslocalpath = 'GIT:\dbachecks\'
+Remove-Module dbatools, dbachecks -ErrorAction SilentlyContinue
+Import-Module $dbacheckslocalpath\dbachecks.psd1
+$cred = Import-Clixml $CredentialPath
+$containers = 'localhost,15589', 'localhost,15588', 'localhost, 15587', 'localhost,15586'
+&lt;/code>&lt;/pre>
+&lt;p>Now I can start to run my Integration tests. First reset the dbachecks configuration and set some configuration values&lt;/p>
+&lt;pre>&lt;code># run the checks against these instances
+$null = Set-DbcConfig -Name app.sqlinstance $containers
+# We are using SQL authentication
+$null = Set-DbcConfig -Name policy.connection.authscheme -Value SQL
+# sometimes its a bit slower than the default value
+$null = Set-DbcConfig -Name policy.network.latencymaxms -Value 100 # because the containers run a bit slow!
+&lt;/code>&lt;/pre>
+&lt;p>Then I will run the dbachecks connectivity checks and save the results to a variable without showing any output&lt;/p>
+&lt;pre>&lt;code>$ConnectivityTests = Invoke-DbcCheck -SqlCredential $cred -Check Connectivity -Show None -PassThru
+&lt;/code>&lt;/pre>
+&lt;p>I can then use Pester to check that dbachecks has worked as expected by testing if the failedcount property returned is 0.&lt;/p>
+&lt;pre>&lt;code>Describe &amp;quot;Testing the checks are running as expected&amp;quot; -Tag Integration {
+Context &amp;quot;Connectivity Checks&amp;quot; {
+It &amp;quot;All Tests should pass&amp;quot; {
+$ConnectivityTests.FailedCount | Should -Be 0 -Because &amp;quot;We expect all of the checks to run and pass with default settings&amp;quot;
+}
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/check-connectivity.png"
+loading="lazy"
+>&lt;/p>
+&lt;h2 id="what-is-the-unit-test-for-this-pr">What is the Unit Test for this PR?
+&lt;/h2>&lt;p>Next I think about what we need to be testing for the this PR. The Unit tests will help us.&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/what-are-the-unit-tests.png"
+loading="lazy"
+>&lt;/p>
+&lt;h2 id="choose-some-integration-tests">Choose some Integration Tests
+&lt;/h2>&lt;p>This check is checking the Agent job history settings and the unit tests are&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>It “Passes Check Correctly with Maximum History Rows disabled (-1)”&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>It “Fails Check Correctly with Maximum History Rows disabled (-1) but configured value is 1000”&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>It “Passes Check Correctly with Maximum History Rows being 10000”&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>It “Fails Check Correctly with Maximum History Rows being less than 10000”&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>It “Passes Check Correctly with Maximum History Rows per job being 100”&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>It “Fails Check Correctly with Maximum History Rows per job being less than 100”&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>So we will check the same things on real actual SQL Servers. First though we need to start the SQL Server Agent as it is not started by default. We can do this as follows&lt;/p>
+&lt;pre>&lt;code>docker exec -ti integration_sql2012_1 powershell start-service SQLSERVERAGENT
+docker exec -ti integration_sql2014_1 powershell start-service SQLSERVERAGENT
+docker exec -ti integration_sql2016_1 powershell start-service SQLSERVERAGENT
+docker exec -ti integration_sql2017_1 powershell start-service SQLSERVERAGENT
+&lt;/code>&lt;/pre>
+&lt;p>Unfortunately, the agent service wont start in the SQL 2014 container so I cant run agent integration tests for that container but it’s better than no integration tests.&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/agent-wont-start.png"
+loading="lazy"
+>&lt;/p>
+&lt;h2 id="this-is-what-we-will-test">This is What We Will Test
+&lt;/h2>&lt;p>So we want to test if the check will pass with default settings. In general, dbachecks will pass for default instance, agent or database settings values by default.&lt;/p>
+&lt;p>We also want the check to fail if the configured value for dbachecks is set to default but the value has been set on the instance.&lt;/p>
+&lt;p>We want the check to pass if the configured value for the dbachecks configuration is set and the instance (agent, database) setting matches it.&lt;/p>
+&lt;h2 id="if-you-are-doing-something-more-than-once-">If You Are Doing Something More Than Once ……
+&lt;/h2>&lt;p>Let’s automate that. We are going to be repeatedly running those three tests for each setting that we are running integration tests for. I have created 3 functions for this again checking that FailedCount or Passed Count is 0 depending on the test.&lt;/p>
+&lt;pre>&lt;code>function Invoke-DefaultCheck {
+It &amp;quot;All Checks should pass with default for $Check&amp;quot; {
+$Tests = get-variable &amp;quot;$($Check)default&amp;quot; -ValueOnly
+$Tests.FailedCount | Should -Be 0 -Because &amp;quot;We expect all of the checks to run and pass with default setting (Yes we may set some values before but you get my drift)&amp;quot;
+}
+}
+function Invoke-ConfigCheck {
+It &amp;quot;All Checks should fail when config changed for $Check&amp;quot; {
+$Tests = get-variable &amp;quot;$($Check)configchanged&amp;quot; -ValueOnly
+$Tests.PassedCount | Should -Be 0 -Because &amp;quot;We expect all of the checks to run and fail when we have changed the config values&amp;quot;
+}
+}
+function Invoke-ValueCheck {
+It &amp;quot;All Checks should pass when setting changed for $Check&amp;quot; {
+$Tests = get-variable &amp;quot;$($Check) value changed&amp;quot; -ValueOnly
+$Tests.FailedCount | Should -Be 0 -Because &amp;quot;We expect all of the checks to run and pass when we have changed the settings to match the config values&amp;quot;
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>Now I can use those functions inside a loop in my Integration Pester Test&lt;/p>
+&lt;pre>&lt;code>$TestingTheChecks = @('errorlogscount','jobhistory')
+Foreach ($Check in $TestingTheChecks) {
+Context &amp;quot;$Check Checks&amp;quot; {
+Invoke-DefaultCheck
+Invoke-ConfigCheck
+Invoke-ValueCheck
+}
+}
+&lt;/code>&lt;/pre>
+&lt;h2 id="write-some-integration-tests">Write Some Integration Tests
+&lt;/h2>&lt;p>So for this new test I have added a value to the TestingTheChecks array then I can test my checks. The default check I can check like this&lt;/p>
+&lt;pre>&lt;code># run the checks against these instances (SQL2014 agent wont start :-( ))
+$null = Set-DbcConfig -Name app.sqlinstance $containers.Where {$_ -ne 'localhost,15588'}
+# by default all tests should pass on default instance settings
+$jobhistorydefault = Invoke-DbcCheck -SqlCredential $cred -Check JobHistory -Show None -PassThru
+&lt;/code>&lt;/pre>
+&lt;p>Now I need to change the configurations so that they do not match the defaults and run the checks again&lt;/p>
+&lt;pre>&lt;code>#Change the configuration to test that the checks fail
+$null = Set-DbcConfig -Name agent.history. maximumjobhistoryrows -value 1000
+$null = Set-DbcConfig -Name agent.history.maximumhistoryrows -value 10000
+$jobhistoryconfigchanged = Invoke-DbcCheck -SqlCredential $cred -Check JobHistory -Show None -PassThru
+&lt;/code>&lt;/pre>
+&lt;p>Next we have to change the instance settings so that they match the dbachecks configuration and run the checks and test that they all pass.&lt;/p>
+&lt;p>We will (of course) use &lt;a class="link" href="http://dbatools.io" target="_blank" rel="noopener"
+>dbatools&lt;/a> for this. First we need to find the command that we need&lt;/p>
+&lt;pre>&lt;code>Find-DbaCommand jobserver
+&lt;/code>&lt;/pre>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/find-dbacommand.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>and then work out how to use it&lt;/p>
+&lt;pre>&lt;code>Get-Help Set-DbaAgentServer -Detailed
+&lt;/code>&lt;/pre>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/set-the-values.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>There is an example that does exactly what we want 🙂 So we can run this.&lt;/p>
+&lt;pre>&lt;code>$setDbaAgentServerSplat = @{
+MaximumJobHistoryRows = 1000
+MaximumHistoryRows = 10000
+SqlInstance = $containers.Where{$_ -ne 'localhost,15588'}
+SqlCredential = $cred
+}
+Set-DbaAgentServer @setDbaAgentServerSplat
+$jobhistoryvaluechanged = Invoke-DbcCheck -SqlCredential $cred -Check JobHistory -Show None -PassThru
+&lt;/code>&lt;/pre>
+&lt;h2 id="run-the-integration-tests">Run the Integration Tests
+&lt;/h2>&lt;p>And then we will check that all of the checks are passing and failing as expected&lt;/p>
+&lt;pre>&lt;code>Invoke-Pester .\DockerTests.ps1
+&lt;/code>&lt;/pre>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/testing-the-checks.png"
+loading="lazy"
+>&lt;/p>
+&lt;h2 id="integration-test-for-error-log-counts">Integration Test For Error Log Counts
+&lt;/h2>&lt;p>There is another integration test there for the error logs count. This works in the same way. Here is the code&lt;/p>
+&lt;pre>&lt;code>#region error Log Count - PR 583
+# default test
+$errorlogscountdefault = Invoke-DbcCheck -SqlCredential $cred -Check ErrorLogCount -Show None -PassThru
+# set a value and then it will fail
+$null = Set-DbcConfig -Name policy.errorlog.logcount -Value 10
+$errorlogscountconfigchanged = Invoke-DbcCheck -SqlCredential $cred -Check ErrorLogCount -Show None -PassThru
+# set the value and then it will pass
+$null = Set-DbaErrorLogConfig -SqlInstance $containers -SqlCredential $cred -LogCount 10
+$errorlogscountvaluechanged = Invoke-DbcCheck -SqlCredential $cred -Check ErrorLogCount -Show None -PassThru
+#endregion
+&lt;/code>&lt;/pre>
+&lt;h2 id="merge-the-changes">Merge the Changes
+&lt;/h2>&lt;p>So with all the tests passing I can merge the PR into the development branch and Azure DevOps will start a build. Ultimately, I would like to add the integration to the build as well following &lt;a class="link" href="https://twitter.com/AndreKamman" target="_blank" rel="noopener"
+>André&lt;/a>‘s blog post but for now I used the GitHub Pull Request extension to merge the pull request into development which started a &lt;a class="link" href="https://dataplat.visualstudio.com/dbachecks/_build/results?buildId=365&amp;amp;view=results" target="_blank" rel="noopener"
+>build&lt;/a> and then merged that into master which signed the code and deployed it to the PowerShell gallery as you can see &lt;a class="link" href="https://dataplat.visualstudio.com/dbachecks/_releaseProgress?_a=release-environment-logs&amp;amp;releaseId=81&amp;amp;environmentId=81" target="_blank" rel="noopener"
+>here&lt;/a> and the result is&lt;/p>
+&lt;p>&lt;a class="link" href="https://www.powershellgallery.com/packages/dbachecks/1.1.164" target="_blank" rel="noopener"
+>https://www.powershellgallery.com/packages/dbachecks/1.1.164&lt;/a>&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2019/01/powershell-gallery.png"
+loading="lazy"
+>&lt;/p></description></item><item><title>How to run a PowerShell script file with Verbose, Confirm or WhatIf</title><link>https://dbachecks.io/blog/how-to-run-a-powershell-script-file-with-verbose-confirm-or-whatif/</link><pubDate>Tue, 23 Jan 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/how-to-run-a-powershell-script-file-with-verbose-confirm-or-whatif/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2018/01/02-Showing-the-results.png" alt="Featured image of post How to run a PowerShell script file with Verbose, Confirm or WhatIf" />&lt;p>Before you run a PowerShell command that makes a change to something you should check that it is going to do what you expect. You can do this by using the WhatIf parameter for commands that support it. For example, if you wanted to create a New SQL Agent Job Category you would use the &lt;a class="link" href="http://dbatools.io" target="_blank" rel="noopener"
+>awesome dbatools module&lt;/a> and write some code like this&lt;/p>
+&lt;pre>&lt;code>New-DbaAgentJobCategory -SqlInstance ROB-XPS -Category 'Backup'
+&lt;/code>&lt;/pre>
+&lt;p>before you run it, you can check what it is going to do using&lt;/p>
+&lt;pre>&lt;code>New-DbaAgentJobCategory -SqlInstance ROB-XPS -Category 'Backup' -WhatIf
+&lt;/code>&lt;/pre>
+&lt;p>which gives a result like this&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/01-Whatif.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>This makes it easy to do at the command line but when we get confident with PowerShell we will want to write scripts to perform tasks using more than one command. So how can we ensure that we can check that those will do what we are expecting without actually running the script and see what happens? Of course, there are Unit and integration testing that should be performed using &lt;a class="link" href="https://blog.robsewell.com/writing-dynamic-and-random-tests-cases-for-pester/" target="_blank" rel="noopener"
+>Pester&lt;/a> when developing the script but there will still be occasions when we want to see what this script will do this time in this environment.&lt;/p>
+&lt;p>Lets take an example. We want to place our SQL Agent jobs into specific custom categories depending on their name. We might write a script like this&lt;/p>
+&lt;pre>&lt;code>&amp;lt;#
+.SYNOPSIS
+Adds SQL Agent Jobs to categories and creates the categories if needed
+.DESCRIPTION
+Adds SQL Agent Jobs to categories and creates the categories if needed. Creates
+Backup', 'Index', 'TroubleShooting','General Info Gathering' categories and adds
+the agent jobs depending on name to the category
+.PARAMETER Instance
+The Instance to run the script against
+#&amp;gt;
+Param(
+[string]$Instance
+)
+$Categories = 'Backup', 'Index','DBCC', 'TroubleShooting', 'General Info Gathering'
+$Categories.ForEach{
+## Create Category if it doesnot exist
+If (-not (Get-DbaAgentJobCategory -SqlInstance $instance -Category $PSItem)) {
+New-DbaAgentJobCategory -SqlInstance $instance -Category $PSItem -CategoryType LocalJob
+}
+}
+## Get the agent jobs and iterate through them
+(Get-DbaAgentJob -SqlInstance $instance).ForEach{
+## Depending on the name of the Job - Put it in a Job Category
+switch -Wildcard ($PSItem.Name) {
+'*DatabaseBackup*' {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category 'Backup'
+}
+'*Index*' {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category 'Index'
+}
+'*DatabaseIntegrity*' {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category 'DBCC'
+}
+'*Log SP_*' {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category 'TroubleShooting'
+}
+'*Collection*' {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category 'General Info Gathering'
+}
+## Otherwise put it in the uncategorised category
+Default {
+Set-DbaAgentJob -SqlInstance $instance -Job $PSItem -Category '[Uncategorized (Local)]'
+}
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>You can run this script against any SQL instance by calling  it and passing an instance parameter from the command line like this&lt;/p>
+&lt;pre>&lt;code> &amp;amp; C:\temp\ChangeJobCategories.ps1 -instance ROB-XPS
+&lt;/code>&lt;/pre>
+&lt;p>If you wanted to see what would happen, you could edit the script and add the WhatIf parameter to every changing command but that’s not really a viable solution. What you can do is&lt;/p>
+&lt;pre>&lt;code>$PSDefaultParameterValues['*:WhatIf'] = $true
+&lt;/code>&lt;/pre>
+&lt;p>this will set all commands that accept WhatIf to use the WhatIf parameter. This means that if you are using functions that you have written internally you must ensure that you write your functions to use the common parameters&lt;/p>
+&lt;p>Once you have set the default value for WhatIf as above, you can simply call your script and see the WhatIf output&lt;/p>
+&lt;pre>&lt;code> &amp;amp; C:\temp\ChangeJobCategories.ps1 -instance ROB-XPS
+&lt;/code>&lt;/pre>
+&lt;p>which will show the WhatIf output for the script&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/02-Showing-the-results.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>Once you have checked that everything is as you expected then you can remove the default value for the WhatIf parameter and run the script&lt;/p>
+&lt;pre>&lt;code>$PSDefaultParameterValues['*:WhatIf'] = $false
+&amp;amp; C:\temp\ChangeJobCategories.ps1 -instance ROB-XPS
+&lt;/code>&lt;/pre>
+&lt;p>and get the expected output&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/03-run-the-script-1.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>If you wish to see the verbose output or ask for confirmation before any change you can set those default parameters like this&lt;/p>
+&lt;pre>&lt;code>## To Set Verbose output
+$PSDefaultParameterValues['*:Verbose'] = $true
+## To Set Confirm
+$PSDefaultParameterValues['*:Confirm'] = $true
+&lt;/code>&lt;/pre>
+&lt;p>and set them back by setting to false&lt;/p></description></item><item><title>Pester 4.2.0 has a Because…… because :-)</title><link>https://dbachecks.io/blog/pester-4.2.0-has-a-because-because-/</link><pubDate>Thu, 18 Jan 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/pester-4.2.0-has-a-because-because-/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2018/01/01-Because-1.png" alt="Featured image of post Pester 4.2.0 has a Because…… because :-)" />&lt;p>I was going through my demo for the &lt;a class="link" href="http://meetu.ps/e/DdYV6/gHMdv/g" target="_blank" rel="noopener"
+>South Coast User Group meeting&lt;/a> tonight and decided to add some details about the Because parameter available in the Pester pre-release version 4.2.0.&lt;/p>
+&lt;p>To install a pre-release version you need to get the latest  &lt;a class="link" href="https://go.microsoft.com/fwlink/?linkid=846259" target="_blank" rel="noopener"
+>PowerShellGet&lt;/a> module. This is pre-installed with PowerShell v6 but for earlier versions open PowerShell as administrator and run&lt;/p>
+&lt;pre>&lt;code>Install-Module PowerShellGet
+&lt;/code>&lt;/pre>
+&lt;p>You can try out the Pester pre-release version (once you have the latest PowerShellGet) by installing it from the &lt;a class="link" href="http://powershellgallery.com" target="_blank" rel="noopener"
+>PowerShell Gallery&lt;/a> with&lt;/p>
+&lt;pre>&lt;code>Install-Module -Name Pester -AllowPrerelease -Force # -Scope CurrentUser # if not admin
+&lt;/code>&lt;/pre>
+&lt;p>There are a number of improvements as you can see in &lt;a class="link" href="https://github.com/pester/Pester/blob/master/CHANGELOG.md" target="_blank" rel="noopener"
+>the change log&lt;/a> I particularly like the&lt;/p>
+&lt;blockquote>
+&lt;ul>
+&lt;li>Add -BeTrue to test for truthy values&lt;/li>
+&lt;li>Add -BeFalse to test for falsy values&lt;/li>
+&lt;/ul>&lt;/blockquote>
+&lt;p>This release adds the Because parameter to the all assertions. This means that you can add a reason why the test has failed. As &lt;a class="link" href="http://jakubjares.com/2017/12/19/using-because/" target="_blank" rel="noopener"
+>JAKUB JAREŠ writes here&lt;/a>&lt;/p>
+&lt;ul>
+&lt;li>
+&lt;p>Reasons force you think more&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Reasons document your intent&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>Reasons make your TestCases clearer&lt;/p>
+&lt;/li>
+&lt;li>
+&lt;p>So you can do something like this&lt;/p>
+&lt;p>Describe &amp;ldquo;This shows the Because&amp;rdquo;{
+It &amp;ldquo;Should be true&amp;rdquo; {
+$false | Should -BeTrue -Because &amp;ldquo;The Beard said so&amp;rdquo;
+}
+}&lt;/p>
+&lt;/li>
+&lt;/ul>
+&lt;p>Which gives an error message like this 🙂&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/01-Because-1.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>As you can see the Expected gives the expected value and then your Because statement and then the actual result. Which means that you could write validation tests like&lt;/p>
+&lt;pre>&lt;code>Describe &amp;quot;My System&amp;quot; {
+Context &amp;quot;Server&amp;quot; {
+It &amp;quot;Should be using XP SP3&amp;quot; {
+(Get-CimInstance -ClassName win32_operatingsystem) .Version | Should -Be '5.1.2600' -Because &amp;quot;We have failed to bother to update the App and it only works on XP&amp;quot;
+}
+It &amp;quot;Should be running as rob-xps\\mrrob&amp;quot; {
+whoami | Should -Be 'rob-xps\\mrrob' -Because &amp;quot;This is the user with the permissions&amp;quot;
+}
+It &amp;quot;Should have SMB1 enabled&amp;quot; {
+(Get-SmbServerConfiguration).EnableSMB1Protocol | Should -BeTrue -Because &amp;quot;We don't care about the risk&amp;quot;
+}
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>and get a result like this&lt;/p>
+&lt;p>&lt;a class="link" href="https://blog.robsewell.com/assets/uploads/2018/01/02-example.png" target="_blank" rel="noopener"
+>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/02-example.png"
+loading="lazy"
+>&lt;/a>&lt;/p>
+&lt;p>Or if you were looking to validate your SQL Server you could write something like this&lt;/p>
+&lt;pre>&lt;code>It &amp;quot;Backups Should have Succeeeded&amp;quot; {
+$Where = {$\_IsEnabled -eq $true -and $\_.Name -like '\*databasebackup\*'}
+$Should = @{
+BeTrue = $true
+Because = &amp;quot;WE NEED BACKUPS - OMG&amp;quot;
+}
+(Get-DbaAgentJob -SqlInstance $instance| Where-Object $where).LastRunOutcome -NotContains 'Failed' | Should @Should
+}
+&lt;/code>&lt;/pre>
+&lt;p>or maybe your security policies allow Windows Groups as logins on your SQL instances. You could easily link to the documentation and explain why this is important. This way you could build up a set of tests to validate your SQL Server is just so for your environment&lt;/p>
+&lt;pre>&lt;code>It &amp;quot;Should only have Windows groups as logins&amp;quot; {
+$Should = @{
+Befalse = $true
+Because = &amp;quot;Our Security Policies say we must only have Windows groups as logins - See this document&amp;quot;
+}
+(Get-DbaLogin -SqlInstance $instance -WindowsLogins). LoginType -contains 'WindowsUser' | Should @Should
+}
+&lt;/code>&lt;/pre>
+&lt;p>Just for fun, these would look like this&lt;/p>
+&lt;p>&lt;a class="link" href="https://blog.robsewell.com/assets/uploads/2018/01/03-for-fun.png" target="_blank" rel="noopener"
+>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/03-for-fun.png"
+loading="lazy"
+>&lt;/a>&lt;/p>
+&lt;p>and the code looks like&lt;/p>
+&lt;pre>&lt;code>$Instances = 'Rob-XPS', 'Rob-XPS\\Bolton'
+foreach ($instance in $Instances) {
+$Server, $InstanceName = $Instance.Split('/')
+if ($InstanceName.Length -eq 0) {$InstanceName = 'MSSSQLSERVER'}
+Describe &amp;quot;Testing the instance $instance&amp;quot; {
+Context &amp;quot;SQL Agent Jobs&amp;quot; {
+It &amp;quot;Backups Should have Succeeeded&amp;quot; {
+$Where = {$\_IsEnabled -eq $true -and $\_. Name -like '\*databasebackup\*'}
+$Should = @{
+BeTrue = $true
+Because = &amp;quot;WE NEED BACKUPS - OMG &amp;quot;
+}
+(Get-DbaAgentJob -SqlInstance $instance| Where-Object $where).LastRunOutcome -NotContains 'Failed' | Should @Should
+}
+Context &amp;quot;Logins&amp;quot; {
+It &amp;quot;Should only have Windows groups as logins&amp;quot; {
+$Should = @{
+Befalse = $true
+Because = &amp;quot;Our Security Policies say we must only have Windows groups as logins - See this document&amp;quot;
+}
+(Get-DbaLogin -SqlInstance $instance -WindowsLogins).LoginType -contains 'WindowsUser' | Should @Should
+}
+}
+}
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>This will be a useful improvement to Pester when it is released and enable you to write validation checks with explanations.&lt;/p>
+&lt;blockquote>
+&lt;p>Come and Learn Some PowerShell Magic* at &lt;a class="link" href="https://twitter.com/hashtag/SQLBits?src=hash&amp;amp;ref_src=twsrc%5Etfw" target="_blank" rel="noopener"
+>#SQLBits&lt;/a> with &lt;a class="link" href="https://twitter.com/cl?ref_src=twsrc%5Etfw" target="_blank" rel="noopener"
+>@cl&lt;/a> and I&lt;br>
+Details &lt;a class="link" href="https://t.co/7OfK75e6Y1" target="_blank" rel="noopener"
+>https://t.co/7OfK75e6Y1&lt;/a>&lt;br>
+Registration &lt;a class="link" href="https://t.co/RDSkPlfMMx" target="_blank" rel="noopener"
+>https://t.co/RDSkPlfMMx&lt;/a>&lt;br>
+*PowerShell is not magic – it just might appear that way &lt;a class="link" href="https://t.co/5czPzYR3QD" target="_blank" rel="noopener"
+>pic.twitter.com/5czPzYR3QD&lt;/a>&lt;/p>
+&lt;p>— Rob Sewell (@sqldbawithbeard) &lt;a class="link" href="https://twitter.com/sqldbawithbeard/status/935143475418402816?ref_src=twsrc%5Etfw" target="_blank" rel="noopener"
+>November 27, 2017&lt;/a>&lt;/p>&lt;/blockquote>
+&lt;p>&lt;a class="link" href="https://dbatools.io/new-module-coming-soon/" target="_blank" rel="noopener"
+>Chrissy has written about dbachecks&lt;/a> the new up and coming community driven open source PowerShell module for SQL DBAs to validate their SQL Server estate. we have taken some of the ideas that we have presented about a way of using &lt;a class="link" href="http://dbatools.io" target="_blank" rel="noopener"
+>dbatools&lt;/a> with &lt;a class="link" href="https://github.com/Pester/Pester" target="_blank" rel="noopener"
+>Pester&lt;/a> to validate that everything is how it should be and placed them into a meta data driven framework to make things easy for anyone to use. It is looking really good and I am really excited about it. It will be released very soon.&lt;/p>
+&lt;p>Chrissy and I will be doing a pre-con at &lt;a class="link" href="http://sqlbits.com" target="_blank" rel="noopener"
+>SQLBits&lt;/a> where we will talk in detail about how this works. &lt;a class="link" href="http://sqlbits.com/information/event17/Reliable_Repeatable__Automated_PowerShell_for_DBAs/trainingdetails.aspx" target="_blank" rel="noopener"
+>You can find out more and sign up here&lt;/a>&lt;/p></description></item><item><title>Using the AST in Pester for dbachecks</title><link>https://dbachecks.io/blog/using-the-ast-in-pester-for-dbachecks/</link><pubDate>Mon, 15 Jan 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/using-the-ast-in-pester-for-dbachecks/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2018/01/02-Pester-results-1.png" alt="Featured image of post Using the AST in Pester for dbachecks" />&lt;p>TagLine – My goal – Chrissy will appreciate Unit Tests one day 🙂&lt;/p>
+&lt;p>&lt;a class="link" href="https://dbatools.io/new-module-coming-soon/" target="_blank" rel="noopener"
+>Chrissy has written about dbachecks&lt;/a> the new up and coming community driven open source PowerShell module for SQL DBAs to validate their SQL Server estate. we have taken some of the ideas that we have presented about a way of using &lt;a class="link" href="http://dbatools.io" target="_blank" rel="noopener"
+>dbatools&lt;/a> with &lt;a class="link" href="https://github.com/Pester/Pester" target="_blank" rel="noopener"
+>Pester&lt;/a> to validate that everything is how it should be and placed them into a meta data driven framework to make things easy for anyone to use. It is looking really good and I am really excited about it. It will be released very soon.&lt;/p>
+&lt;p>Chrissy and I will be doing a pre-con at &lt;a class="link" href="http://sqlbits.com" target="_blank" rel="noopener"
+>SQLBits&lt;/a> where we will talk in detail about how this works. &lt;a class="link" href="http://sqlbits.com/information/event17/Reliable_Repeatable__Automated_PowerShell_for_DBAs/trainingdetails.aspx" target="_blank" rel="noopener"
+>You can find out more and sign up here&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://claudioessilva.eu/" target="_blank" rel="noopener"
+>Cláudio Silva&lt;/a> has improved my &lt;a class="link" href="https://blog.robsewell.com/a-pretty-powerbi-pester-results-template-file/" target="_blank" rel="noopener"
+>PowerBi For Pester&lt;/a> file and made it beautiful and whilst we were discussing this we found that if the Pester Tests were not formatted correctly the Power Bi looked … well rubbish to be honest! Chrissy asked if we could enforce some rules for writing our Pester tests.&lt;/p>
+&lt;p>The rules were&lt;/p>
+&lt;p>The Describe title should be in double quotes&lt;br>
+The Describe should use the plural Tags parameter&lt;br>
+The Tags should be singular&lt;br>
+The first Tag should be a unique tag in Get-DbcConfig&lt;br>
+The context title should end with $psitem&lt;br>
+The code should use Get-SqlInstance or Get-ComputerName&lt;br>
+The Code should use the forEach method&lt;br>
+The code should not use $_&lt;br>
+The code should contain a Context block&lt;/p>
+&lt;p>She asked me if I could write the Pester Tests for it and this is how I did it. I needed to look at the Tags parameter for the Describe. It occurred to me that this was a job for the Abstract Syntax Tree (AST). I don’t know very much about the this but I sort of remembered reading a blog post by &lt;a class="link" href="http://www.lazywinadmin.com/2016/08/powershellpester-make-sure-your.html" target="_blank" rel="noopener"
+>Francois-Xavier Cat about using it with Pester&lt;/a> so I went and read that and &lt;a class="link" href="https://stackoverflow.com/questions/39909021/parsing-powershell-script-with-ast" target="_blank" rel="noopener"
+>found an answer on Stack Overflow&lt;/a> as well. These looked just like what I needed so I made use of them. Thank you very much to Francois-Xavier and wOxxOm for sharing.&lt;/p>
+&lt;p>The first thing I did was to get the Pester Tests which we have located in a checks folder and loop through them and get the content of the file with the Raw parameter&lt;/p>
+&lt;pre>&lt;code>Context &amp;quot;$($_.Name) - Checking Describes titles and tags&amp;quot; {
+&lt;/code>&lt;/pre>
+&lt;p>Then I decided to look at the Describes using the method that wOxxOm (I know no more about this person!) showed.&lt;/p>
+&lt;pre>&lt;code>$Describes = \[Management.Automation.Language.Parser\] ::ParseInput($check, \[ref\]$tokens, \[ref\]$errors).
+FindAll(\[Func\[Management.Automation.Language.Ast, bool\]\] {
+param($ast)
+$ast.CommandElements -and
+$ast.CommandElements\[0\].Value -eq 'describe'
+}, $true) |
+ForEach {
+$CE = $_.CommandElements
+$secondString = ($CE |Where { $_.StaticType.name -eq 'string' })\[1\]
+$tagIdx = $CE.IndexOf(($CE |Where ParameterName -eq'Tags') ) + 1
+$tags = if ($tagIdx -and $tagIdx -lt $CE.Count) {
+$CE\[$tagIdx\].Extent
+}
+New-Object PSCustomObject -Property @{
+Name = $secondString
+Tags = $tags
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>As I understand it, this code is using the Parser on the $check (which contains the code from the file) and finding all of the Describe commands and creating an object of the title of the Describe with the StaticType equal to String and values from the Tag parameter.&lt;/p>
+&lt;p>When I ran this against the database tests file I got the following results&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/01-describes-1.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>Then it was a simple case of writing some tests for the values&lt;/p>
+&lt;pre>&lt;code>@($describes).Foreach{
+$title = $PSItem.Name.ToString().Trim('&amp;quot;').Trim('''')
+It &amp;quot;$title Should Use a double quote after the Describe&amp;quot; {
+$PSItem.Name.ToString().Startswith('&amp;quot;')| Should be $true
+$PSItem.Name.ToString().Endswith('&amp;quot;')| Should be $true
+}
+It &amp;quot;$title should use a plural for tags&amp;quot; {
+$PsItem.Tags| Should Not BeNullOrEmpty
+}
+# a simple test for no esses apart from statistics and Access!!
+if ($null -ne $PSItem.Tags) {
+$PSItem.Tags.Text.Split(',').Trim().Where{($_ -ne '$filename') -and ($_ -notlike '\*statistics\*') -and ($_ -notlike '\*BackupPathAccess\*') }.ForEach{
+It &amp;quot;$PsItem Should Be Singular&amp;quot; {
+$_.ToString().Endswith('s')| Should Be $False
+}
+}
+It &amp;quot;The first Tag Should Be in the unique Tags returned from Get-DbcCheck&amp;quot; {
+$UniqueTags -contains $PSItem.Tags.Text.Split(',') \[0\].ToString()| Should Be $true
+}
+}
+else {
+It &amp;quot;You haven't used the Tags Parameter so we can't check the tags&amp;quot; {
+$false| Should be $true
+}
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>The Describes variable is inside @() so that if there is only one the ForEach Method will still work. The unique tags are returned from our command Get-DbcCheck which shows all of the checks. We will have a unique tag for each test so that they can be run individually.&lt;/p>
+&lt;p>Yes, I have tried to ensure that the tags are singular by ensuring that they do not end with an s (apart from statistics) and so had to not check  BackupPathAccess and statistics. Filename is a variable that we add to each Describe Tags so that we can run all of the tests in one file. I added a little if block to the Pester as well so that the error if the Tags parameter was not passed was more obvious&lt;/p>
+&lt;p>I did the same with the context blocks as well&lt;/p>
+&lt;pre>&lt;code>Context &amp;quot;$($_.Name) - Checking Contexts&amp;quot; {
+## Find the Contexts
+$Contexts = \[Management.Automation.Language.Parser\] ::ParseInput($check, \[ref\]$tokens, \[ref\]$errors).
+FindAll(\[Func\[Management.Automation.Language.Ast, bool\] \] {
+param($ast)
+$ast.CommandElements -and
+$ast.CommandElements\[0\].Value -eq 'Context'
+}, $true) |
+ForEach {
+$CE = $_.CommandElements
+$secondString = ($CE |Where { $_.StaticType.name -eq 'string' })\[1\]
+New-Object PSCustomObject -Property @{
+Name = $secondString
+}
+}
+@($Contexts).ForEach{
+$title = $PSItem.Name.ToString().Trim('&amp;quot;').Trim('''')
+It &amp;quot;$Title Should end with `$psitem So that the PowerBi will work correctly&amp;quot; {
+$PSItem.Name.ToString().Endswith('psitem&amp;quot;')| Should Be $true
+}
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>This time we look for the Context command and ensure that the string value ends with psitem as the PowerBi parses the last value when creating columns&lt;/p>
+&lt;p>Finally I got all of the code and check if it matches some coding standards&lt;/p>
+&lt;pre>&lt;code>Context &amp;quot;$($_.Name) - Checking Code&amp;quot; {
+## This just grabs all the code
+$AST = \[System.Management.Automation.Language.Parser\] ::ParseInput($Check, \[ref\]$null, \[ref\]$null)
+$Statements = $AST.EndBlock.statements.Extent
+## Ignore the filename line
+@($Statements.Where{$_.StartLineNumber -ne 1}).ForEach{
+$title = \[regex\]::matches($PSItem.text, &amp;quot;Describe(. *)-Tag&amp;quot;).groups\[1\].value.Replace('&amp;quot;', '').Replace ('''', '').trim()
+It &amp;quot;$title Should Use Get-SqlInstance or Get-ComputerName&amp;quot; {
+($PSItem.text -Match 'Get-SqlInstance') -or ($psitem.text -match 'Get-ComputerName')| Should be $true
+}
+It &amp;quot;$title Should use the ForEach Method&amp;quot; {
+($Psitem.text -match 'Get-SqlInstance\\).ForEach {') -or ($Psitem.text -match 'Get-ComputerName\\). ForEach{')| Should Be $true# use the \ to escape the )
+}
+It &amp;quot;$title Should not use `$_&amp;quot; {
+($Psitem.text -match '$_')| Should Be $false
+}
+It &amp;quot;$title Should Contain a Context Block&amp;quot; {
+$Psitem.text -match 'Context'| Should Be $True
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>I trim the title from the Describe block so that it is easy to see where the failures (or passes) are with some regex and then loop through each statement apart from the first line to ensure that the code is using our internal commands Get-SQLInstance or Get-ComputerName to get information, that we are looping through each of those arrays using the ForEach method rather than ForEach-Object and using $psitem rather than $_ to reference the “This Item” in the array and that each Describe block has a context block.&lt;/p>
+&lt;p>This should ensure that any new tests that are added to the module follow the guidance we have set up on the Wiki and ensure that the Power Bi results still look beautiful!&lt;/p>
+&lt;p>Anyone can run the tests using&lt;/p>
+&lt;pre>&lt;code>Invoke-Pester .\\tests\\Unit.Tests.ps1 -show Fails
+&lt;/code>&lt;/pre>
+&lt;p>before they create a Pull request and it looks like&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/02-Pester-results-1.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>if everything is Green then they can submit their Pull Request 🙂 If not they can see quickly that something needs to be fixed. (fail early 🙂 )&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/03-fails.png"
+loading="lazy"
+alt="03 fails.png"
+>&lt;/p></description></item></channel></rss>
