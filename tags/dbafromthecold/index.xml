@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Dbafromthecold on dbachecks</title><link>https://dbachecks.io/tags/dbafromthecold/</link><description>Recent content in Dbafromthecold on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 10 May 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/tags/dbafromthecold/index.xml" rel="self" type="application/rss+xml"/><item><title>Creating SQL Server Containers for versions 2012-2017</title><link>https://dbachecks.io/blog/creating-sql-server-containers-for-versions-2012-2017/</link><pubDate>Thu, 10 May 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/creating-sql-server-containers-for-versions-2012-2017/</guid><description>&lt;p>I am working on my &lt;a class="link" href="http://dbatools.io" target="_blank" rel="noopener"
+>dbatools&lt;/a> and &lt;a class="link" href="http://dbachecks.io" target="_blank" rel="noopener"
+>dbachecks&lt;/a> presentations for &lt;a class="link" href="http://www.sqlsaturday.com/735/eventhome.aspx" target="_blank" rel="noopener"
+>SQL Saturday Finland&lt;/a>, &lt;a class="link" href="https://sqlday.pl/" target="_blank" rel="noopener"
+>SQLDays&lt;/a>, &lt;a class="link" href="http://www.sqlsaturday.com/742/EventHome.aspx" target="_blank" rel="noopener"
+>SQL Saturday Cork&lt;/a> and &lt;a class="link" href="https://sqlgrillen.de/" target="_blank" rel="noopener"
+>SQLGrillen&lt;/a> I want to show the two modules running against a number of SQL Versions so I have installed&lt;/p>
+&lt;ul>
+&lt;li>2 Domain Controllers&lt;/li>
+&lt;li>2 SQL 2017 instances on Windows 2016 with an Availability Group and WideWorldImporters database&lt;/li>
+&lt;li>1 Windows 2016 jump box with all the programmes I need&lt;/li>
+&lt;li>1 Windows 2016 with containers&lt;/li>
+&lt;/ul>
+&lt;p>using a VSTS build and this set of &lt;a class="link" href="https://github.com/SQLDBAWithABeard/ARMTemplates/tree/master/DeployAlwaysOn" target="_blank" rel="noopener"
+>ARM templates and scripts&lt;/a>&lt;/p>
+&lt;p>I wanted to create containers running SQL2017, SQL2016, SQL2014 and SQL2012 and restore versions of the AdventureWorks database onto each one.&lt;/p>
+&lt;h2 id="move-docker-location">Move Docker Location
+&lt;/h2>&lt;p>I redirected my docker location from my &lt;code>C:\&lt;/code> drive to my &lt;code>E:\&lt;/code> drive so I didnt run out of space. I did this by creating a &lt;code>daemon.json&lt;/code> file in &lt;code>C:\ProgramData\docker\config&lt;/code> and adding&lt;/p>
+&lt;p>&lt;code>{&amp;quot;data-root&amp;quot;: &amp;quot;E:\containers&amp;quot;}&lt;/code>&lt;/p>
+&lt;p>and restarting the docker service which created folders like this&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/05/01-folders.png"
+loading="lazy"
+alt="01 - folders.png"
+>&lt;/p>
+&lt;p>Then I ran&lt;/p>
+&lt;p>&lt;code>docker volume create SQLBackups&lt;/code>&lt;/p>
+&lt;p>to create a volume to hold the backups that I could mount on the containers&lt;/p>
+&lt;h2 id="adventureworks-backups">AdventureWorks Backups
+&lt;/h2>&lt;p>I downloaded &lt;a class="link" href="https://github.com/Microsoft/sql-server-samples/releases/tag/adventureworks" target="_blank" rel="noopener"
+>all the AdventureWorks backups from GitHub&lt;/a> and copied them to &lt;code>E:\containers\volumes\sqlbackups\_data&lt;/code>&lt;/p>
+&lt;p>&lt;code>Get-ChildItem $Home\Downloads\AdventureWorks* | Copy-Item -Destination E:\containers\volumes\sqlbackups\_data&lt;/code>&lt;/p>
+&lt;h2 id="getting-the-images">Getting the Images
+&lt;/h2>&lt;p>To download the &lt;a class="link" href="https://hub.docker.com/r/microsoft/mssql-server-windows-developer/" target="_blank" rel="noopener"
+>SQL 2017 image from the DockerHub&lt;/a> I ran&lt;/p>
+&lt;p>&lt;code>docker pull microsoft/mssql-server-windows-developer:latest&lt;/code>&lt;/p>
+&lt;p>and waited for it to download and extract&lt;/p>
+&lt;p>I also needed the images for other versions. My good friend Andrew Pruski &lt;a class="link" href="https://dbafromthecold.com/" target="_blank" rel="noopener"
+>b&lt;/a> | &lt;a class="link" href="https://twitter.com/dbafromthecold" target="_blank" rel="noopener"
+>t&lt;/a> has versions available for us to use on &lt;a class="link" href="https://hub.docker.com/u/dbafromthecold/" target="_blank" rel="noopener"
+>his Docker Hub &lt;/a> so it is just a case of running&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">docker pull dbafromthecold/sqlserver2016dev:sp1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker pull dbafromthecold/sqlserver2014dev:sp2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker pull dbafromthecold/sqlserver2012dev:sp4
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>and waiting for those to download and extract (This can take a while!)&lt;/p>
+&lt;h2 id="create-the-containers">Create the containers
+&lt;/h2>&lt;p>Creating the containers is as easy as&lt;/p>
+&lt;p>&lt;code>docker run -d -p ExposedPort:InternalPort --name NAME -v VolumeName:LocalFolder -e sa\_password=THEPASSWORD -e ACCEPT\_EULA=Y IMAGENAME&lt;/code>&lt;/p>
+&lt;p>so all I needed to run to create 4 SQL containers one of each version was&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">docker run -d -p 15789:1433 --name 2017 -v sqlbackups:C:\SQLBackups -e sa\_password=PruskiIsSQLContainerMan! -e ACCEPT\_EULA=Y microsoft/mssql-server-windows-developer
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker run -d -p 15788:1433 --name 2016 -v sqlbackups:C:\SQLBackups -e sa\_password=PruskiIsSQLContainerMan! -e ACCEPT\_EULA=Y dbafromthecold/sqlserver2016dev:sp1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker run -d -p 15787:1433 --name 2014 -v sqlbackups:C:\SQLBackups -e sa\_password=PruskiIsSQLContainerMan! -e ACCEPT\_EULA=Y dbafromthecold/sqlserver2014dev:sp2
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">docker run -d -p 15786:1433 --name 2012 -v sqlbackups:C:\SQLBackups -e sa\_password=PruskiIsSQLContainerMan! -e ACCEPT\_EULA=Y dbafromthecold/sqlserver2012dev:sp4
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>and just a shade over 12 seconds later I have 4 SQL instances ready for me 🙂&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/05/02-creating-containers.png"
+loading="lazy"
+alt="02 - creating containers.png"
+>&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/05/03-Containers-at-the-ready.png"
+loading="lazy"
+alt="03 - Containers at the ready.png"
+>&lt;/p>
+&lt;h2 id="storing-credentials">Storing Credentials
+&lt;/h2>&lt;p>This is not something I would do in a Production environment but I save my credentials using this method that Jaap Brasser &lt;a class="link" href="http://www.jaapbrasser.com/" target="_blank" rel="noopener"
+>b&lt;/a> | &lt;a class="link" href="https://twitter.com/jaap_brasser" target="_blank" rel="noopener"
+>t&lt;/a> &lt;a class="link" href="https://www.jaapbrasser.com/quickly-and-securely-storing-your-credentials-powershell/" target="_blank" rel="noopener"
+>shared here&lt;/a>&lt;/p>
+&lt;p>&lt;code>Get-Credential | Export-Clixml -Path $HOME\Documents\sa.cred&lt;/code>&lt;/p>
+&lt;p>which means that I can get the credentials in my PowerShell session (as long as it is the same user that created the file) using&lt;/p>
+&lt;p>&lt;code>$cred = Import-Clixml $HOME\Documents\sa.cred&lt;/code>&lt;/p>
+&lt;h2 id="restoring-the-databases">Restoring the databases
+&lt;/h2>&lt;p>I restored all of the AdventureWorks databases that each instance will support onto each instance, so 2017 has all of them whilst 2012 only has the 2012 versions.&lt;/p>
+&lt;p>First I needed to get the filenames of the backup files into a variable&lt;/p>
+&lt;p>&lt;code>$filenames = (Get-ChildItem '\bearddockerhost\e$\containers\volumes\sqlbackups\_data').Name&lt;/code>&lt;/p>
+&lt;p>and the container connection strings, which are the hostname and the port number&lt;/p>
+&lt;p>&lt;code>$containers = 'bearddockerhost,15789', 'bearddockerhost,15788', 'bearddockerhost,15787', 'bearddockerhost,15786'&lt;/code>&lt;/p>
+&lt;p>then I can restore the databases using &lt;a class="link" href="http://dbatools.io" target="_blank" rel="noopener"
+>dbatools&lt;/a> using a switch statement on the version which I get with the NameLevel property of &lt;code>Get-DbaSqlBuildReference&lt;/code>&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">$cred = Import-Clixml $HOME\Documents\sa.cred
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$containers = &amp;#39;bearddockerhost,15789&amp;#39;, &amp;#39;bearddockerhost,15788&amp;#39;, &amp;#39;bearddockerhost,15787&amp;#39;, &amp;#39;bearddockerhost,15786&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$filenames = (Get-ChildItem &amp;#39;\bearddockerhost\e$\containers\volumes\sqlbackups\_data&amp;#39;).Name
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$containers.ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $Container = $Psitem
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $NameLevel = (Get-DbaSqlBuildReference-SqlInstance $Container-SqlCredential $cred).NameLevel
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> switch ($NameLevel) {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2017 {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Restore-DbaDatabase-SqlInstance $Container-SqlCredential $cred-Path C:\sqlbackups\ -useDestinationDefaultDirectories -WithReplace |Out-Null
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Write-Verbose-Message &amp;#34;Restored Databases on 2017&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2016 {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $Files = $Filenames.Where{$PSitem -notlike &amp;#39;\*2017\*&amp;#39;}.ForEach{&amp;#39;C:\sqlbackups\&amp;#39; + $Psitem}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Restore-DbaDatabase-SqlInstance $Container-SqlCredential $cred-Path $Files-useDestinationDefaultDirectories -WithReplace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Write-Verbose-Message &amp;#34;Restored Databases on 2016&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2014 {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $Files = $Filenames.Where{$PSitem -notlike &amp;#39;\*2017\*&amp;#39; -and $Psitem -notlike &amp;#39;\*2016\*&amp;#39;}.ForEach{&amp;#39;C:\sqlbackups\&amp;#39; + $Psitem}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Restore-DbaDatabase-SqlInstance $Container-SqlCredential $cred-Path $Files-useDestinationDefaultDirectories -WithReplace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Write-Verbose-Message &amp;#34;Restored Databases on 2014&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> 2012 {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $Files = $Filenames.Where{$PSitem -like &amp;#39;\*2012\*&amp;#39;}.ForEach{&amp;#39;C:\sqlbackups\&amp;#39; + $Psitem}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Restore-DbaDatabase-SqlInstance $Container-SqlCredential $cred-Path $Files-useDestinationDefaultDirectories -WithReplace
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Write-Verbose-Message &amp;#34;Restored Databases on 2012&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Default {}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>I need to create the file paths for each backup file by getting the correct backups and appending the names to &lt;code>C:\SQLBackups&lt;/code> which is where the volume is mounted inside the container&lt;/p>
+&lt;p>As Get-DbaDatabase gives the container ID as the Computer Name I have highlighted each container below&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/05/04-databases.png"
+loading="lazy"
+alt="04 - databases.png"
+>&lt;/p>
+&lt;p>That is how easy it is to create a number of SQL containers of differing versions for your presentations or exploring needs&lt;/p>
+&lt;p>Happy Automating!&lt;/p></description></item></channel></rss>

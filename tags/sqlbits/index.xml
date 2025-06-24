@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>SQLBits on dbachecks</title><link>https://dbachecks.io/tags/sqlbits/</link><description>Recent content in SQLBits on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Mon, 15 Jan 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/tags/sqlbits/index.xml" rel="self" type="application/rss+xml"/><item><title>Using the AST in Pester for dbachecks</title><link>https://dbachecks.io/blog/using-the-ast-in-pester-for-dbachecks/</link><pubDate>Mon, 15 Jan 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/using-the-ast-in-pester-for-dbachecks/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2018/01/02-Pester-results-1.png" alt="Featured image of post Using the AST in Pester for dbachecks" />&lt;p>TagLine – My goal – Chrissy will appreciate Unit Tests one day 🙂&lt;/p>
+&lt;p>&lt;a class="link" href="https://dbatools.io/new-module-coming-soon/" target="_blank" rel="noopener"
+>Chrissy has written about dbachecks&lt;/a> the new up and coming community driven open source PowerShell module for SQL DBAs to validate their SQL Server estate. we have taken some of the ideas that we have presented about a way of using &lt;a class="link" href="http://dbatools.io" target="_blank" rel="noopener"
+>dbatools&lt;/a> with &lt;a class="link" href="https://github.com/Pester/Pester" target="_blank" rel="noopener"
+>Pester&lt;/a> to validate that everything is how it should be and placed them into a meta data driven framework to make things easy for anyone to use. It is looking really good and I am really excited about it. It will be released very soon.&lt;/p>
+&lt;p>Chrissy and I will be doing a pre-con at &lt;a class="link" href="http://sqlbits.com" target="_blank" rel="noopener"
+>SQLBits&lt;/a> where we will talk in detail about how this works. &lt;a class="link" href="http://sqlbits.com/information/event17/Reliable_Repeatable__Automated_PowerShell_for_DBAs/trainingdetails.aspx" target="_blank" rel="noopener"
+>You can find out more and sign up here&lt;/a>&lt;/p>
+&lt;p>&lt;a class="link" href="https://claudioessilva.eu/" target="_blank" rel="noopener"
+>Cláudio Silva&lt;/a> has improved my &lt;a class="link" href="https://blog.robsewell.com/a-pretty-powerbi-pester-results-template-file/" target="_blank" rel="noopener"
+>PowerBi For Pester&lt;/a> file and made it beautiful and whilst we were discussing this we found that if the Pester Tests were not formatted correctly the Power Bi looked … well rubbish to be honest! Chrissy asked if we could enforce some rules for writing our Pester tests.&lt;/p>
+&lt;p>The rules were&lt;/p>
+&lt;p>The Describe title should be in double quotes&lt;br>
+The Describe should use the plural Tags parameter&lt;br>
+The Tags should be singular&lt;br>
+The first Tag should be a unique tag in Get-DbcConfig&lt;br>
+The context title should end with $psitem&lt;br>
+The code should use Get-SqlInstance or Get-ComputerName&lt;br>
+The Code should use the forEach method&lt;br>
+The code should not use $_&lt;br>
+The code should contain a Context block&lt;/p>
+&lt;p>She asked me if I could write the Pester Tests for it and this is how I did it. I needed to look at the Tags parameter for the Describe. It occurred to me that this was a job for the Abstract Syntax Tree (AST). I don’t know very much about the this but I sort of remembered reading a blog post by &lt;a class="link" href="http://www.lazywinadmin.com/2016/08/powershellpester-make-sure-your.html" target="_blank" rel="noopener"
+>Francois-Xavier Cat about using it with Pester&lt;/a> so I went and read that and &lt;a class="link" href="https://stackoverflow.com/questions/39909021/parsing-powershell-script-with-ast" target="_blank" rel="noopener"
+>found an answer on Stack Overflow&lt;/a> as well. These looked just like what I needed so I made use of them. Thank you very much to Francois-Xavier and wOxxOm for sharing.&lt;/p>
+&lt;p>The first thing I did was to get the Pester Tests which we have located in a checks folder and loop through them and get the content of the file with the Raw parameter&lt;/p>
+&lt;pre>&lt;code>Context &amp;quot;$($_.Name) - Checking Describes titles and tags&amp;quot; {
+&lt;/code>&lt;/pre>
+&lt;p>Then I decided to look at the Describes using the method that wOxxOm (I know no more about this person!) showed.&lt;/p>
+&lt;pre>&lt;code>$Describes = \[Management.Automation.Language.Parser\] ::ParseInput($check, \[ref\]$tokens, \[ref\]$errors).
+FindAll(\[Func\[Management.Automation.Language.Ast, bool\]\] {
+param($ast)
+$ast.CommandElements -and
+$ast.CommandElements\[0\].Value -eq 'describe'
+}, $true) |
+ForEach {
+$CE = $_.CommandElements
+$secondString = ($CE |Where { $_.StaticType.name -eq 'string' })\[1\]
+$tagIdx = $CE.IndexOf(($CE |Where ParameterName -eq'Tags') ) + 1
+$tags = if ($tagIdx -and $tagIdx -lt $CE.Count) {
+$CE\[$tagIdx\].Extent
+}
+New-Object PSCustomObject -Property @{
+Name = $secondString
+Tags = $tags
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>As I understand it, this code is using the Parser on the $check (which contains the code from the file) and finding all of the Describe commands and creating an object of the title of the Describe with the StaticType equal to String and values from the Tag parameter.&lt;/p>
+&lt;p>When I ran this against the database tests file I got the following results&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/01-describes-1.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>Then it was a simple case of writing some tests for the values&lt;/p>
+&lt;pre>&lt;code>@($describes).Foreach{
+$title = $PSItem.Name.ToString().Trim('&amp;quot;').Trim('''')
+It &amp;quot;$title Should Use a double quote after the Describe&amp;quot; {
+$PSItem.Name.ToString().Startswith('&amp;quot;')| Should be $true
+$PSItem.Name.ToString().Endswith('&amp;quot;')| Should be $true
+}
+It &amp;quot;$title should use a plural for tags&amp;quot; {
+$PsItem.Tags| Should Not BeNullOrEmpty
+}
+# a simple test for no esses apart from statistics and Access!!
+if ($null -ne $PSItem.Tags) {
+$PSItem.Tags.Text.Split(',').Trim().Where{($_ -ne '$filename') -and ($_ -notlike '\*statistics\*') -and ($_ -notlike '\*BackupPathAccess\*') }.ForEach{
+It &amp;quot;$PsItem Should Be Singular&amp;quot; {
+$_.ToString().Endswith('s')| Should Be $False
+}
+}
+It &amp;quot;The first Tag Should Be in the unique Tags returned from Get-DbcCheck&amp;quot; {
+$UniqueTags -contains $PSItem.Tags.Text.Split(',') \[0\].ToString()| Should Be $true
+}
+}
+else {
+It &amp;quot;You haven't used the Tags Parameter so we can't check the tags&amp;quot; {
+$false| Should be $true
+}
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>The Describes variable is inside @() so that if there is only one the ForEach Method will still work. The unique tags are returned from our command Get-DbcCheck which shows all of the checks. We will have a unique tag for each test so that they can be run individually.&lt;/p>
+&lt;p>Yes, I have tried to ensure that the tags are singular by ensuring that they do not end with an s (apart from statistics) and so had to not check  BackupPathAccess and statistics. Filename is a variable that we add to each Describe Tags so that we can run all of the tests in one file. I added a little if block to the Pester as well so that the error if the Tags parameter was not passed was more obvious&lt;/p>
+&lt;p>I did the same with the context blocks as well&lt;/p>
+&lt;pre>&lt;code>Context &amp;quot;$($_.Name) - Checking Contexts&amp;quot; {
+## Find the Contexts
+$Contexts = \[Management.Automation.Language.Parser\] ::ParseInput($check, \[ref\]$tokens, \[ref\]$errors).
+FindAll(\[Func\[Management.Automation.Language.Ast, bool\] \] {
+param($ast)
+$ast.CommandElements -and
+$ast.CommandElements\[0\].Value -eq 'Context'
+}, $true) |
+ForEach {
+$CE = $_.CommandElements
+$secondString = ($CE |Where { $_.StaticType.name -eq 'string' })\[1\]
+New-Object PSCustomObject -Property @{
+Name = $secondString
+}
+}
+@($Contexts).ForEach{
+$title = $PSItem.Name.ToString().Trim('&amp;quot;').Trim('''')
+It &amp;quot;$Title Should end with `$psitem So that the PowerBi will work correctly&amp;quot; {
+$PSItem.Name.ToString().Endswith('psitem&amp;quot;')| Should Be $true
+}
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>This time we look for the Context command and ensure that the string value ends with psitem as the PowerBi parses the last value when creating columns&lt;/p>
+&lt;p>Finally I got all of the code and check if it matches some coding standards&lt;/p>
+&lt;pre>&lt;code>Context &amp;quot;$($_.Name) - Checking Code&amp;quot; {
+## This just grabs all the code
+$AST = \[System.Management.Automation.Language.Parser\] ::ParseInput($Check, \[ref\]$null, \[ref\]$null)
+$Statements = $AST.EndBlock.statements.Extent
+## Ignore the filename line
+@($Statements.Where{$_.StartLineNumber -ne 1}).ForEach{
+$title = \[regex\]::matches($PSItem.text, &amp;quot;Describe(. *)-Tag&amp;quot;).groups\[1\].value.Replace('&amp;quot;', '').Replace ('''', '').trim()
+It &amp;quot;$title Should Use Get-SqlInstance or Get-ComputerName&amp;quot; {
+($PSItem.text -Match 'Get-SqlInstance') -or ($psitem.text -match 'Get-ComputerName')| Should be $true
+}
+It &amp;quot;$title Should use the ForEach Method&amp;quot; {
+($Psitem.text -match 'Get-SqlInstance\\).ForEach {') -or ($Psitem.text -match 'Get-ComputerName\\). ForEach{')| Should Be $true# use the \ to escape the )
+}
+It &amp;quot;$title Should not use `$_&amp;quot; {
+($Psitem.text -match '$_')| Should Be $false
+}
+It &amp;quot;$title Should Contain a Context Block&amp;quot; {
+$Psitem.text -match 'Context'| Should Be $True
+}
+}
+&lt;/code>&lt;/pre>
+&lt;p>I trim the title from the Describe block so that it is easy to see where the failures (or passes) are with some regex and then loop through each statement apart from the first line to ensure that the code is using our internal commands Get-SQLInstance or Get-ComputerName to get information, that we are looping through each of those arrays using the ForEach method rather than ForEach-Object and using $psitem rather than $_ to reference the “This Item” in the array and that each Describe block has a context block.&lt;/p>
+&lt;p>This should ensure that any new tests that are added to the module follow the guidance we have set up on the Wiki and ensure that the Power Bi results still look beautiful!&lt;/p>
+&lt;p>Anyone can run the tests using&lt;/p>
+&lt;pre>&lt;code>Invoke-Pester .\\tests\\Unit.Tests.ps1 -show Fails
+&lt;/code>&lt;/pre>
+&lt;p>before they create a Pull request and it looks like&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/02-Pester-results-1.png"
+loading="lazy"
+>&lt;/p>
+&lt;p>if everything is Green then they can submit their Pull Request 🙂 If not they can see quickly that something needs to be fixed. (fail early 🙂 )&lt;/p>
+&lt;p>&lt;img src="https://blog.robsewell.com/assets/uploads/2018/01/03-fails.png"
+loading="lazy"
+alt="03 fails.png"
+>&lt;/p></description></item></channel></rss>

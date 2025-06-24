@@ -1,0 +1,300 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Automation on dbachecks</title><link>https://dbachecks.io/tags/automation/</link><description>Recent content in Automation on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Thu, 16 Aug 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/tags/automation/index.xml" rel="self" type="application/rss+xml"/><item><title>Using the PowerShell AST to find a ForEach Method</title><link>https://dbachecks.io/blog/using-the-powershell-ast-to-find-a-foreach-method/</link><pubDate>Thu, 16 Aug 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/using-the-powershell-ast-to-find-a-foreach-method/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2018/08/server.png" alt="Featured image of post Using the PowerShell AST to find a ForEach Method" />&lt;p>In &lt;a class="link" href="http://dbachecks.io" target="_blank" rel="noopener"
+>dbachecks&lt;/a> we enable people to see what checks are available by running Get-DbcCheck. This gives a number of properties including the ‘type’ of check. This refers to the configuration item or parameter that is required to have a value for this check to run.&lt;/p>
+&lt;p>For example – Any check to do with SQL Agent is of type Sqlinstance because it requires an instance to be specified but a check for SPN is of type ComputerName because it requires a computer name to run.&lt;/p>
+&lt;h2 id="automation-for-the-win">Automation for the win
+&lt;/h2>&lt;p>Because I believe in automation I do not want to have to hard code these values anywhere but create them when the module is imported so we use a json file to feed Get-DbcCheck and populate the Json file when we import the module. This is done using the &lt;a class="link" href="https://dbachecks.io/using-the-ast-in-pester-for-dbachecks/" >method that I described here&lt;/a> and means that whenever a new check is added it is automatically available in Get-DbcCheck without any extra work.&lt;/p>
+&lt;p>We use code like this&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">## Parse the file with AST
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$CheckFileAST = [Management.Automation.Language.Parser]::ParseInput($check, [ref]$null, [ref]$null)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">## Old code we can use the describes
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$Describes = $CheckFileAST.FindAll([Func[Management.Automation.Language.Ast, bool]] {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> param ($ast)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $ast.CommandElements -and
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $ast.CommandElements[0].Value -eq &amp;#39;describe&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }, $true)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">@($describes).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $groups += $filename
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $Describe = $_.CommandElements.Where{$PSItem.StaticType.name -eq &amp;#39;string&amp;#39;}[1]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $title = $Describe.Value
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $Tags = $PSItem.CommandElements.Where{$PSItem.StaticType.name -eq &amp;#39;Object[]&amp;#39; -and $psitem.Value -eq $null}.Extent.Text.ToString().Replace(&amp;#39;, $filename&amp;#39;, &amp;#39;&amp;#39;)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> # CHoose the type
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if ($Describe.Parent -match &amp;#34;Get-Instance&amp;#34;) {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $type = &amp;#34;Sqlinstance&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> elseif ($Describe.Parent -match &amp;#34;Get-ComputerName&amp;#34; -or $Describe.Parent -match &amp;#34;AllServerInfo&amp;#34;) {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $type = &amp;#34;ComputerName&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> elseif ($Describe.Parent -match &amp;#34;Get-ClusterObject&amp;#34;) {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $Type = &amp;#34;ClusteNode&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>First we parse the code with the AST and store that in the CheckFileAST variable, then we use the FindAll method to find any command elements that match “Describe” which conveniently gets our describes and then we can simply match the Parent object which holds some code to each function that we use to get our values to be passed to the tests &lt;code>Get-ComputerName&lt;/code>, &lt;code>Get-Instance&lt;/code>, &lt;code>Get-ClusterObject&lt;/code> and set the type appropriately.&lt;/p>
+&lt;p>which when run against a check like this&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">Describe &amp;#34;Backup Path Access&amp;#34; -Tags BackupPathAccess, Storage, DISA, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> @(Get-Instance).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if ($NotContactable -contains $psitem) {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Context &amp;#34;Testing Backup Path Access on $psitem&amp;#34; {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> It &amp;#34;Can&amp;#39;t Connect to $Psitem&amp;#34; {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $false| Should -BeTrue -Because &amp;#34;The instance should be available to be connected to!&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> else {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Context &amp;#34;Testing Backup Path Access on $psitem&amp;#34; {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $backuppath = Get-DbcConfigValue policy.storage.backuppath
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> if (-not$backuppath) {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $backuppath = (Get-DbaDefaultPath-SqlInstance $psitem).Backup
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> It &amp;#34;can access backup path ($backuppath) on $psitem&amp;#34; {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Test-DbaSqlPath-SqlInstance $psitem -Path $backuppath| Should -BeTrue -Because &amp;#39;The SQL Service account needs to have access to the backup path to backup your databases&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>will find the describe block and get the title “Backup Path Access”  and the tags BackupPathAccess, Storage, DISA, $filename and then find the Get-Instance and set the type to SqlInstance&lt;/p>
+&lt;h2 id="until-rob-breaks-it">Until Rob breaks it!
+&lt;/h2>&lt;p>This has worked wonderfully well for 6 months or so of the life of dbachecks but this week I broke it!&lt;/p>
+&lt;p>The problem was the performance of the code. It is taking a long time to run the tests and I am looking at ways to improve this. I was looking at the Server.Tests file because I thought why not start with one of the smaller files.&lt;/p>
+&lt;p>It runs the following checks&lt;/p>
+&lt;ul>
+&lt;li>Server Power Plan Configuration&lt;/li>
+&lt;li>SPNs&lt;/li>
+&lt;li>Disk Space&lt;/li>
+&lt;li>Ping Computer&lt;/li>
+&lt;li>CPUPrioritisation&lt;/li>
+&lt;li>Disk Allocation Unit&lt;/li>
+&lt;li>Instance Connection&lt;/li>
+&lt;/ul>
+&lt;p>and it was looping through the computer names for each check like this&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">Describe &amp;#34;Server Power Plan Configuration&amp;#34; -Tags PowerPlan, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> @(Get-ComputerName).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Describe &amp;#34;Instance Connection&amp;#34; -Tags InstanceConnection, Connectivity, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> @(Get-Instance).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Describe &amp;#34;SPNs&amp;#34; -Tags SPN, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> @(Get-ComputerName).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Describe &amp;#34;Disk Space&amp;#34; -Tags DiskCapacity, Storage, DISA, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> @(Get-ComputerName).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Describe &amp;#34;Ping Computer&amp;#34; -Tags PingComputer, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> @(Get-ComputerName).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Describe &amp;#34;CPUPrioritisation&amp;#34; -Tags CPUPrioritisation, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> @(Get-ComputerName).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Describe &amp;#34;Disk Allocation Unit&amp;#34; -Tags DiskAllocationUnit, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> @(Get-ComputerName).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>I altered it to have only one loop for the computer names like so&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">@(Get-ComputerName).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Describe &amp;#34;Server Power Plan Configuration&amp;#34; -Tags PowerPlan, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Describe &amp;#34;SPNs&amp;#34; -Tags SPN, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Describe &amp;#34;Disk Space&amp;#34; -Tags DiskCapacity, Storage, DISA, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Describe &amp;#34;Ping Computer&amp;#34; -Tags PingComputer, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Describe &amp;#34;CPUPrioritisation&amp;#34; -Tags CPUPrioritisation, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> Describe &amp;#34;Disk Allocation Unit&amp;#34; -Tags DiskAllocationUnit, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Describe &amp;#34;Instance Connection&amp;#34; -Tags InstanceConnection, Connectivity, $filename {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> @(Get-Instance).ForEach{
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>and immediately in testing my checks for the Server Tag decreased in time by about 60% 🙂&lt;/p>
+&lt;p>I was very happy.&lt;/p>
+&lt;p>Then I added it to the dbachecks module on my machine, loaded the module and realised that my Json file for &lt;code>Get-DbcCheck &lt;/code>was no longer being populated for the type because this line&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">elseif ($Describe.Parent-match&amp;#34;Get-ComputerName&amp;#34;-or$Describe.Parent-match&amp;#34;AllServerInfo&amp;#34;)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>was no longer true.&lt;/p>
+&lt;h2 id="ast-for-other-things">AST for other things
+&lt;/h2>&lt;p>So I googled &lt;a class="link" href="http://Management.Automation.Language.Ast" target="_blank" rel="noopener"
+>Management.Automation.Language.Ast&lt;/a> the first result lead me to &lt;a class="link" href="https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.language.invokememberexpressionast?view=powershellsdk-1.1.0" target="_blank" rel="noopener"
+>docs.microsoft&lt;/a> There are a number of different language elements available there and I found &lt;a class="link" href="https://docs.microsoft.com/en-us/dotnet/api/system.management.automation.language.invokememberexpressionast?view=powershellsdk-1.1.0" target="_blank" rel="noopener"
+>InvokeMemberExpressionAst&lt;/a> which will let me find any methods that have been invoked, so now I can find the loops with&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">$ComputerNameForEach = $CheckFileAST.FindAll([Func[Management.Automation.Language.Ast, bool]] {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> param ($ast)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> $ast -is [System.Management.Automation.Language.InvokeMemberExpressionAst]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> }, $true)
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>When I examined the object returned I could see that I could further limit the result to get only the method for Get-ComputerName and then if I choose the Extent I can get the code of that loop&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;span class="lnt">4
+&lt;/span>&lt;span class="lnt">5
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">## New code uses a Computer Name loop to speed up execution so need to find that as well
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ComputerNameForEach=$CheckFileAST.FindAll([Func[Management.Automation.Language.Ast,bool]] {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">param ($ast)
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$ast-is [System.Management.Automation.Language.InvokeMemberExpressionAst] -and$ast.expression.Subexpression.Extent.Text-eq&amp;#39;Get-ComputerName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}, $true).Extent
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>and now I can match the Tags to the type again :-)&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;span class="lnt">3
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">if ($ComputerNameForEach-match$title) {
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$type=&amp;#34;ComputerName&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">}
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>and now &lt;code>Get-DbcCheck&lt;/code> is returning the right results and the checks are a little faster&lt;/p>
+&lt;p>&lt;a class="link" href="assets/uploads/2018/08/server.png" >&lt;img src="https://dbachecks.io/assets/uploads/2018/08/server.png"
+loading="lazy"
+>&lt;/a>&lt;/p>
+&lt;p>You can find &lt;a class="link" href="http://powershellgallery.com/packages/dbachecks" target="_blank" rel="noopener"
+>dbachecks on the PowerShell Gallery&lt;/a> or install it using&lt;/p>
+&lt;p>Install-Module dbachecks -Scope CurrentUser&lt;/p></description></item></channel></rss>

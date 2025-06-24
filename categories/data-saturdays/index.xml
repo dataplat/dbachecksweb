@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Data Saturdays on dbachecks</title><link>https://dbachecks.io/categories/data-saturdays/</link><description>Recent content in Data Saturdays on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Fri, 14 Jul 2023 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/categories/data-saturdays/index.xml" rel="self" type="application/rss+xml"/><item><title>dbachecks v3 at Data Saturday Oslo</title><link>https://dbachecks.io/blog/dbachecks-v3-at-data-saturday-oslo/</link><pubDate>Fri, 14 Jul 2023 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/dbachecks-v3-at-data-saturday-oslo/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2023/datasaturdayoslo-session.jpeg" alt="Featured image of post dbachecks v3 at Data Saturday Oslo" />&lt;h1 id="dbachecks-v3-at-data-saturday-oslo">dbachecks v3 at Data Saturday Oslo
+&lt;/h1>&lt;p>&lt;a class="link" href="https://datasaturdays.com/2023-09-02-datasaturday0035/" target="_blank" rel="noopener"
+>&lt;img src="https://dbachecks.io/assets/uploads/2023/datasaturdayoslo-session.jpeg"
+loading="lazy"
+alt="dbachecksv3"
+>&lt;/a>&lt;/p>
+&lt;p>On Saturday September 2nd 2023, will be &lt;a class="link" href="https://datasaturdays.com/2023-09-02-datasaturday0035/" target="_blank" rel="noopener"
+>Data Saturday Oslo&lt;/a> in Oslo, Norway.&lt;/p>
+&lt;p>For more information about this free Saturday event, visit the official event page at &lt;a class="link" href="https://datasaturdays.com/2023-09-02-datasaturday0035/" target="_blank" rel="noopener"
+>DataSaturday0035&lt;/a> where you can sign up. Don&amp;rsquo;t wait, spaces are limited!&lt;/p>
+&lt;p>I will be presenting a session with Jess Pomfret &lt;a class="link" href="https://jesspomfret.com" target="_blank" rel="noopener"
+>Blog&lt;/a> &lt;a class="link" href="https://tech.lgbt/@Jpomfret" target="_blank" rel="noopener"
+>Mastodon&lt;/a> and Cláudio Silva &lt;a class="link" href="https://claudioessilva.eu/" target="_blank" rel="noopener"
+>Blog&lt;/a> &lt;a class="link" href="https://twitter.com/claudioessilva" target="_blank" rel="noopener"
+>Twitter&lt;/a> introducing dbachecks v3.&lt;/p>
+&lt;h2 id="abstract">abstract
+&lt;/h2>&lt;p>dbachecks v1 was released back in 2018, bringing together the DBA PowerShell magic of dbatools with pester, a PowerShell testing framework to create a powerful infrastructure validation tool.&lt;/p>
+&lt;p>dbachecks is able to answer questions such as:&lt;/p>
+&lt;ul>
+&lt;li>can I connect to all of my instances?&lt;/li>
+&lt;li>was my last full backup with 7 days&lt;/li>
+&lt;li>are my databases owned by the expected login&lt;/li>
+&lt;li>am I using &amp;lsquo;page verify&amp;rsquo; to detect corruption&lt;/li>
+&lt;li>are any of my certificates nearing expiration&lt;/li>
+&lt;li>and many more&amp;hellip;&lt;/li>
+&lt;/ul>
+&lt;p>v2 introduced the ability to store these results in a database and create a time series chart showing changes over time.&lt;/p>
+&lt;p>But now, we introduce v3!&lt;/p>
+&lt;p>dbachecks v3 takes advantage of Pester v5 - a total rewrite of the tool enabled us to not only increase the performance of the module but position it to be able to grow and expand in a controlled and predictable way in the future.&lt;/p>
+&lt;p>In this session, we&amp;rsquo;ll talk about the changes we&amp;rsquo;ve made to the module, demo the new features and prove the massive performance increase using Profiler.&lt;/p>
+&lt;p>Come and join us as we share the biggest release yet of the dbachecks module and learn how you can utilise it in your environments.&lt;/p>
+&lt;p>For more information about the free Saturday event, visit the official event page at &lt;a class="link" href="https://datasaturdays.com/2023-09-02-datasaturday0035/" target="_blank" rel="noopener"
+>DataSaturday0035&lt;/a>. Don&amp;rsquo;t wait, spaces are limited!&lt;/p>
+&lt;p>You can also join Jess and I on Friday 1st September 2023 for a power-packed day of learning, networking, and enhancing your DBA skills.&lt;/p>
+&lt;p>Ready to take your DBA skills to the next level in a hybrid environment? Secure your spot now by registering at the Eventbrite page: &lt;a class="link" href="https://www.eventbrite.com/e/the-dba-in-a-hybrid-environment-tickets-643006990217" target="_blank" rel="noopener"
+>Register Here&lt;/a>.&lt;/p></description></item></channel></rss>

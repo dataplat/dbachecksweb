@@ -1,0 +1,535 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>POwer Bi on dbachecks</title><link>https://dbachecks.io/tags/power-bi/</link><description>Recent content in POwer Bi on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Wed, 23 May 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/tags/power-bi/index.xml" rel="self" type="application/rss+xml"/><item><title>dbachecks – Save the results to a database for historical reporting</title><link>https://dbachecks.io/blog/dbachecks-save-the-results-to-a-database-for-historical-reporting/</link><pubDate>Wed, 23 May 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/dbachecks-save-the-results-to-a-database-for-historical-reporting/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2018/05/08-filter-by-instance-and-insance.png" alt="Featured image of post dbachecks – Save the results to a database for historical reporting" />&lt;p>I gave a presentation at &lt;a class="link" href="https://sqlday.pl/en/" target="_blank" rel="noopener"
+>SQL Day&lt;/a> in Poland last week on &lt;a class="link" href="http://dbachecks.io" target="_blank" rel="noopener"
+>dbachecks&lt;/a> and one of the questions I got asked was will you write a command to put the results of the checks into a database for historical reporting.&lt;/p>
+&lt;p>The answer is no and here is the reasoning. The capability is already there. Most good PowerShell commands will only return an object and the beauty of an object is that you can do anything you like with it. Your only limit is your imagination 🙂 I have written about this before &lt;a class="link" href="https://dbachecks.io/taking-dbatools-test-dbalastbackup-a-little-further/" >here. &lt;/a>The other reason is that it would be very difficult to write something that was easily configurable for the different requirements that people will require. But here is one way of doing it.&lt;/p>
+&lt;h2 id="create-a-configuration-and-save-it">Create a configuration and save it
+&lt;/h2>&lt;p>Let’s define a configuration and call it production. This is something that I do all of the time so that I can easily run a set of checks with the configuration that I want.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;span class="lnt">29
+&lt;/span>&lt;span class="lnt">30
+&lt;/span>&lt;span class="lnt">31
+&lt;/span>&lt;span class="lnt">32
+&lt;/span>&lt;span class="lnt">33
+&lt;/span>&lt;span class="lnt">34
+&lt;/span>&lt;span class="lnt">35
+&lt;/span>&lt;span class="lnt">36
+&lt;/span>&lt;span class="lnt">37
+&lt;/span>&lt;span class="lnt">38
+&lt;/span>&lt;span class="lnt">39
+&lt;/span>&lt;span class="lnt">40
+&lt;/span>&lt;span class="lnt">41
+&lt;/span>&lt;span class="lnt">42
+&lt;/span>&lt;span class="lnt">43
+&lt;/span>&lt;span class="lnt">44
+&lt;/span>&lt;span class="lnt">45
+&lt;/span>&lt;span class="lnt">46
+&lt;/span>&lt;span class="lnt">47
+&lt;/span>&lt;span class="lnt">48
+&lt;/span>&lt;span class="lnt">49
+&lt;/span>&lt;span class="lnt">50
+&lt;/span>&lt;span class="lnt">51
+&lt;/span>&lt;span class="lnt">52
+&lt;/span>&lt;span class="lnt">53
+&lt;/span>&lt;span class="lnt">54
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl"># The computername we will be testing
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name app.computername -Value $sql0,$SQl1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># The Instances we want to test
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name app.sqlinstance -Value $sql0,$SQl1
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># The database owner we expect
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.validdbowner.name -Value &amp;#39;THEBEARD\\EnterpriseAdmin&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># the database owner we do NOT expect
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.invaliddbowner.name -Value &amp;#39;sa&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Should backups be compressed by default?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.backup.defaultbackupcompression -Value $true
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Do we allow DAC connections?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.dacallowed -Value $true
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># What recovery model should we have?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.recoverymodel.type -value FULL
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># What should ourt database growth type be?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.database.filegrowthtype -Value kb
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># What authentication scheme are we expecting?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.connection.authscheme -Value &amp;#39;KERBEROS&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Which Agent Operator should be defined?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name agent.dbaoperatorname -Value &amp;#39;The DBA Team&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Which Agent Operator email should be defined?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name agent.dbaoperatoremail -Value &amp;#39;TheDBATeam@TheBeard.Local&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Which failsafe operator shoudl be defined?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name agent.failsafeoperator -Value &amp;#39;The DBA Team&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">## Set the database mail profile name
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name agent.databasemailprofile -Value &amp;#39;DbaTeam&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Where is the whoisactive stored procedure?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.whoisactive.database -Value master
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># What is the maximum time since I took a Full backup?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.backup.fullmaxdays -Value 7
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># What is the maximum time since I took a DIFF backup (in hours) ?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.backup.diffmaxhours -Value 26
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># What is the maximum time since I took a log backup (in minutes)?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.backup.logmaxminutes -Value 30
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># What is my domain name?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name domain.name -Value &amp;#39;TheBeard.Local&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Where is my Ola database?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.ola.database -Value master
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Which database should not be checked for recovery model
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.recoverymodel.excludedb -Value &amp;#39;master&amp;#39;,&amp;#39;msdb&amp;#39;,&amp;#39;tempdb&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Should I skip the check for temp files on c?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name skip.tempdbfilesonc -Value $true
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Should I skip the check for temp files count?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name skip.tempdbfilecount -Value $true
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># Which Checks should be excluded?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name command.invokedbccheck.excludecheck -Value LogShipping,ExtendedEvent, PseudoSimple,SPN, TestLastBackupVerifyOnly,IdentityUsage,SaRenamed
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"># How many months before a build is unsupported do I want to fail the test?
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name policy.build.warningwindow -Value 6
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">## I need to set the app.cluster configuration to one of the nodes for the HADR check
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">## and I need to set the domain.name value
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name app.cluster -Value $SQL0
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name domain.name -Value &amp;#39;TheBeard.Local&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">## I also skip the ping check for the listener as we are in Azure
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Set-DbcConfig -Name skip.hadr.listener.pingcheck -Value $true
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Now I can export that configuration to a json file and store on a file share or in source control using the code below. This makes it easy to embed the checks into an automation solution&lt;/p>
+&lt;p>&lt;code>Export-DbcConfig -Path Git:\\Production.Json&lt;/code>&lt;/p>
+&lt;p>and then I can use it with&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">Import-DbcConfig -Path Git:\\Production.Json
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Invoke-DbcCheck
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;a class="link" href="assets/uploads/2018/05/01-Invoke-DbcCheck.png" >&lt;img src="https://dbachecks.io/assets/uploads/2018/05/01-Invoke-DbcCheck.png"
+loading="lazy"
+alt="01 - Invoke-DbcCheck"
+>&lt;/a>&lt;/p>
+&lt;p>I would use one of the Show parameter values here if I was running it at the command line, probably fails to make reading the information easier&lt;/p>
+&lt;h2 id="add-results-to-a-database">Add results to a database
+&lt;/h2>&lt;p>This only gets us the test results on the screen, so if we want to save them to a database we have to use the PassThru parameter for Invoke-DbcCheck. I will run the checks again, save them to a variable&lt;/p>
+&lt;p>&lt;code>$Testresults = Invoke-DbcCheck -PassThru -Show Fails&lt;/code>&lt;/p>
+&lt;p>Then I can use the &lt;a class="link" href="http://dbatools.io" target="_blank" rel="noopener"
+>dbatools&lt;/a> &lt;a class="link" href="https://dbatools.io/functions/write-dbadatatable/" target="_blank" rel="noopener"
+>Write-DbaDatatable&lt;/a> command to write the results to a table in a database. I need to do this twice, once for the summary and once for the test results&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">$Testresults | Write-DbaDataTable -SqlInstance $sql0 -Database tempdb -Table Prod_dbachecks_summary -AutoCreateTable
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$Testresults.TestResult | Write-DbaDataTable -SqlInstance $sql0 -Database tempdb -Table Prod_dbachecks_detail -AutoCreateTable
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>and I get two tables one for the summary&lt;/p>
+&lt;p>&lt;a class="link" href="assets/uploads/2018/05/02-summary.png" >&lt;img src="https://dbachecks.io/assets/uploads/2018/05/02-summary.png"
+loading="lazy"
+alt="02 - summary"
+>&lt;/a>&lt;/p>
+&lt;p>and one for the details&lt;/p>
+&lt;p>&lt;a class="link" href="assets/uploads/2018/05/03-detail.png" >&lt;img src="https://dbachecks.io/assets/uploads/2018/05/03-detail.png"
+loading="lazy"
+alt="03 - detail"
+>&lt;/a>&lt;/p>
+&lt;p>This works absolutely fine and I could continue to add test results in this fashion but it has no date property so it is not so useful for reporting.&lt;/p>
+&lt;h2 id="create-tables-and-triggers">Create tables and triggers
+&lt;/h2>&lt;p>This is one way of doing it. I am not sure it is the best way but it works! I always look forward to how people take ideas and move them forward so if you have a better/different solution please blog about it and reference it in the comments below&lt;/p>
+&lt;p>First I created a staging table for the summary results&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="n">CREATE&lt;/span> &lt;span class="n">TABLE&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">dbachecks&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">Prod_dbachecks_summary_stage&lt;/span>&lt;span class="p">](&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">TagFilter&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">ExcludeTagFilter&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">TestNameFilter&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">TotalCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">PassedCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">FailedCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">SkippedCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">PendingCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">InconclusiveCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Time&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">bigint&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">TestResult&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span> &lt;span class="n">ON&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PRIMARY&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">TEXTIMAGE_ON&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PRIMARY&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">GO&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>and a destination table with a primary key and a date column which defaults to todays date&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="n">CREATE&lt;/span> &lt;span class="n">TABLE&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">dbachecks&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">Prod_dbachecks_summary&lt;/span>&lt;span class="p">](&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">SummaryID&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">IDENTITY&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NOT&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">TestDate&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">date&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NOT&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">TagFilter&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">ExcludeTagFilter&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">TestNameFilter&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">TotalCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">PassedCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">FailedCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">SkippedCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">PendingCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">InconclusiveCount&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Time&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">bigint&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">TestResult&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">CONSTRAINT&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PK_Prod_dbachecks_summary&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">PRIMARY&lt;/span> &lt;span class="n">KEY&lt;/span> &lt;span class="n">CLUSTERED&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">SummaryID&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">ASC&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span>&lt;span class="n">WITH&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">PAD_INDEX&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">OFF&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">STATISTICS_NORECOMPUTE&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">OFF&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">IGNORE_DUP_KEY&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">OFF&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">ALLOW_ROW_LOCKS&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">ON&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">ALLOW_PAGE_LOCKS&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">ON&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">ON&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PRIMARY&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span> &lt;span class="n">ON&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PRIMARY&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">TEXTIMAGE_ON&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PRIMARY&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">GO&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">ALTER&lt;/span> &lt;span class="n">TABLE&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">dbachecks&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">Prod_dbachecks_summary&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">ADD&lt;/span> &lt;span class="n">CONSTRAINT&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">DF_Prod_dbachecks_summary_TestDate&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">DEFAULT&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">getdate&lt;/span>&lt;span class="p">())&lt;/span> &lt;span class="n">FOR&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">TestDate&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">GO&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>and added an INSERT trigger to the staging table&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">CREATE TRIGGER [dbachecks].[Load_Prod_Summary]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ON [dbachecks].[Prod_dbachecks_summary_stage]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> AFTER INSERT
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">AS
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">BEGIN
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> \\ SET NOCOUNT ON added to prevent extra result sets from
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> \\ interfering with SELECT statements.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SET NOCOUNT ON;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> INSERT INTO [dbachecks].[Prod_dbachecks_summary]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ([TagFilter], [ExcludeTagFilter], [TestNameFilter], [TotalCount], [PassedCount], [FailedCount], [SkippedCount], [PendingCount], [InconclusiveCount], [Time], [TestResult])
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SELECT [TagFilter], [ExcludeTagFilter], [TestNameFilter], [TotalCount], [PassedCount], [FailedCount], [SkippedCount], [PendingCount], [InconclusiveCount], [Time], [TestResult] FROM [dbachecks].[Prod_dbachecks_summary_stage]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">END
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GO
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ALTER TABLE [dbachecks].[Prod_dbachecks_summary_stage] ENABLE TRIGGER [Load_Prod_Summary]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GO
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>and for the details I do the same thing. A details table&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;span class="lnt">21
+&lt;/span>&lt;span class="lnt">22
+&lt;/span>&lt;span class="lnt">23
+&lt;/span>&lt;span class="lnt">24
+&lt;/span>&lt;span class="lnt">25
+&lt;/span>&lt;span class="lnt">26
+&lt;/span>&lt;span class="lnt">27
+&lt;/span>&lt;span class="lnt">28
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="n">CREATE&lt;/span> &lt;span class="n">TABLE&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">dbachecks&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">Prod_dbachecks_detail&lt;/span>&lt;span class="p">](&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">DetailID&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">IDENTITY&lt;/span>&lt;span class="p">(&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">,&lt;/span>&lt;span class="mi">1&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NOT&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">SummaryID&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="ne">int&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NOT&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">ErrorRecord&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">ParameterizedSuiteName&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Describe&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Parameters&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Passed&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">bit&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Show&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">FailureMessage&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Time&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">bigint&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Name&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Result&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Context&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">StackTrace&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="n">CONSTRAINT&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PK_Prod_dbachecks_detail&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">PRIMARY&lt;/span> &lt;span class="n">KEY&lt;/span> &lt;span class="n">CLUSTERED&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">(&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">DetailID&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">ASC&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span>&lt;span class="n">WITH&lt;/span> &lt;span class="p">(&lt;/span>&lt;span class="n">PAD_INDEX&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">OFF&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">STATISTICS_NORECOMPUTE&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">OFF&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">IGNORE_DUP_KEY&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">OFF&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">ALLOW_ROW_LOCKS&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">ON&lt;/span>&lt;span class="p">,&lt;/span> &lt;span class="n">ALLOW_PAGE_LOCKS&lt;/span> &lt;span class="o">=&lt;/span> &lt;span class="n">ON&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">ON&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PRIMARY&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span> &lt;span class="n">ON&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PRIMARY&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">TEXTIMAGE_ON&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PRIMARY&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">GO&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">ALTER&lt;/span> &lt;span class="n">TABLE&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">dbachecks&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">Prod_dbachecks_detail&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">WITH&lt;/span> &lt;span class="n">CHECK&lt;/span> &lt;span class="n">ADD&lt;/span> &lt;span class="n">CONSTRAINT&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">FK_Prod_dbachecks_detail_Prod_dbachecks_summary&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">FOREIGN&lt;/span> &lt;span class="n">KEY&lt;/span>&lt;span class="p">([&lt;/span>&lt;span class="n">SummaryID&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">REFERENCES&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">dbachecks&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">Prod_dbachecks_summary&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">([&lt;/span>&lt;span class="n">SummaryID&lt;/span>&lt;span class="p">])&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">GO&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">ALTER&lt;/span> &lt;span class="n">TABLE&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">dbachecks&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">Prod_dbachecks_detail&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">CHECK&lt;/span> &lt;span class="n">CONSTRAINT&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">FK_Prod_dbachecks_detail_Prod_dbachecks_summary&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">GO&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>A stage table&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-gdscript3" data-lang="gdscript3">&lt;span class="line">&lt;span class="cl">&lt;span class="n">CREATE&lt;/span> &lt;span class="n">TABLE&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">dbachecks&lt;/span>&lt;span class="p">]&lt;/span>&lt;span class="o">.&lt;/span>&lt;span class="p">[&lt;/span>&lt;span class="n">Prod_dbachecks_detail_stage&lt;/span>&lt;span class="p">](&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">ErrorRecord&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">ParameterizedSuiteName&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Describe&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Parameters&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Passed&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">bit&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Show&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">FailureMessage&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Time&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">bigint&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Name&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Result&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">Context&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>&lt;span class="p">,&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> &lt;span class="p">[&lt;/span>&lt;span class="n">StackTrace&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">nvarchar&lt;/span>&lt;span class="p">](&lt;/span>&lt;span class="nb">max&lt;/span>&lt;span class="p">)&lt;/span> &lt;span class="n">NULL&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="p">)&lt;/span> &lt;span class="n">ON&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PRIMARY&lt;/span>&lt;span class="p">]&lt;/span> &lt;span class="n">TEXTIMAGE_ON&lt;/span> &lt;span class="p">[&lt;/span>&lt;span class="n">PRIMARY&lt;/span>&lt;span class="p">]&lt;/span>
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&lt;span class="n">GO&lt;/span>
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>with a trigger&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;span class="lnt">15
+&lt;/span>&lt;span class="lnt">16
+&lt;/span>&lt;span class="lnt">17
+&lt;/span>&lt;span class="lnt">18
+&lt;/span>&lt;span class="lnt">19
+&lt;/span>&lt;span class="lnt">20
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">CREATE TRIGGER [dbachecks].[Load_Prod_Detail]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> ON [dbachecks].[Prod_dbachecks_detail_stage]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> AFTER INSERT
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">AS
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">BEGIN
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> \\ SET NOCOUNT ON added to prevent extra result sets from
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> \\ interfering with SELECT statements.
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SET NOCOUNT ON;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> INSERT INTO [dbachecks].[Prod_dbachecks_detail]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">([SummaryID],[ErrorRecord], [ParameterizedSuiteName], [Describe], [Parameters], [Passed], [Show], [FailureMessage], [Time], [Name], [Result], [Context], [StackTrace])
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> SELECT
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> (SELECT MAX(SummaryID) From [dbachecks].[Prod_dbachecks_summary]),[ErrorRecord], [ParameterizedSuiteName], [Describe], [Parameters], [Passed], [Show], [FailureMessage], [Time], [Name], [Result], [Context], [StackTrace]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl"> FROM [dbachecks].[Prod_dbachecks_detail_stage]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">END
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GO
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">ALTER TABLE [dbachecks].[Prod_dbachecks_detail_stage] ENABLE TRIGGER [Load_Prod_Detail]
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">GO
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>Then I can use &lt;code>Write-DbaDatatable&lt;/code> with a couple of extra parameters, &lt;code>FireTriggers&lt;/code> to run the trigger, &lt;code>Truncate&lt;/code> and &lt;code>Confirm:$false&lt;/code> to avoid any confirmation because I want this to run without any interaction and I can get the results into the database.&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;span class="lnt">2
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">$Testresults | Write-DbaDataTable -SqlInstance $Instance -Database $Database -Schema dbachecks -Table Prod_dbachecks_summary_stage -FireTriggers -Truncate -Confirm:$False
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">$Testresults.TestResult | Write-DbaDataTable -SqlInstance $Instance -Database $Database -Schema dbachecks -Table Prod_dbachecks_detail_stage -FireTriggers -Truncate -Confirm:$False
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>&lt;a class="link" href="assets/uploads/2018/05/detail-with-stage.png" >&lt;img src="https://dbachecks.io/assets/uploads/2018/05/detail-with-stage.png"
+loading="lazy"
+alt="detail with stage"
+>&lt;/a>&lt;/p>
+&lt;p>Which means that I can now query some of this data and also create PowerBi reports for it.&lt;/p>
+&lt;p>To enable me to have results for the groups in dbachecks I have to do a little bit of extra manipulation. I can add all of the checks to the database using&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt">1
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">Get-DbcCheck | Write-DbaDataTable -SqlInstance $sql0 -Database ValidationResults -Schema dbachecks -Table Checks -Truncate -Confirm:$False -AutoCreateTable
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>But because the Ola Hallengren Job names are configuration items I need to update the values for those checks which I can do as follows&lt;/p>
+&lt;div class="highlight">&lt;div class="chroma">
+&lt;table class="lntable">&lt;tr>&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code>&lt;span class="lnt"> 1
+&lt;/span>&lt;span class="lnt"> 2
+&lt;/span>&lt;span class="lnt"> 3
+&lt;/span>&lt;span class="lnt"> 4
+&lt;/span>&lt;span class="lnt"> 5
+&lt;/span>&lt;span class="lnt"> 6
+&lt;/span>&lt;span class="lnt"> 7
+&lt;/span>&lt;span class="lnt"> 8
+&lt;/span>&lt;span class="lnt"> 9
+&lt;/span>&lt;span class="lnt">10
+&lt;/span>&lt;span class="lnt">11
+&lt;/span>&lt;span class="lnt">12
+&lt;/span>&lt;span class="lnt">13
+&lt;/span>&lt;span class="lnt">14
+&lt;/span>&lt;/code>&lt;/pre>&lt;/td>
+&lt;td class="lntd">
+&lt;pre tabindex="0" class="chroma">&lt;code class="language-fallback" data-lang="fallback">&lt;span class="line">&lt;span class="cl">$query = &amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.systemfull) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$SysFullJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.UserFull) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$UserFullJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.UserDiff) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$UserDiffJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.UserLog) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$UserLogJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.CommandLogCleanup) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$CommandLogJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.SystemIntegrity) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$SysIntegrityJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.UserIntegrity) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$UserIntegrityJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.UserIndex) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$UserIndexJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.OutputFileCleanup) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$OutputFileJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.DeleteBackupHistory) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$DeleteBackupJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">UPDATE [dbachecks].[Checks] SET [Describe] = &amp;#39;Ola - &amp;#34; + (Get-DbcConfigValue -Name ola.jobname.PurgeBackupHistory) + &amp;#34;&amp;#39; WHERE [Describe] = &amp;#39;Ola - `$PurgeBackupJobName&amp;#39;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">&amp;#34;
+&lt;/span>&lt;/span>&lt;span class="line">&lt;span class="cl">Invoke-DbaSqlQuery -SqlInstance $SQL0 -Database ValidationResults -Query $query
+&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/td>&lt;/tr>&lt;/table>
+&lt;/div>
+&lt;/div>&lt;p>You can get a sample Power Bi report in &lt;a class="link" href="https://github.com/SQLDBAWithABeard/dbachecks-expanded" target="_blank" rel="noopener"
+>my Github which also has the code from this blog post&lt;/a>&lt;/p>
+&lt;p>Then you just need to open in PowerBi Desktop and&lt;/p>
+&lt;p>Click Edit Queries&lt;br>
+Click Data Source Settings&lt;br>
+Click Change Source&lt;br>
+Change the Instance and Database names&lt;/p>
+&lt;p>&lt;a class="link" href="assets/uploads/2018/05/09-PowerBi.png" >&lt;img src="https://dbachecks.io/assets/uploads/2018/05/09-PowerBi.png"
+loading="lazy"
+alt="09 - PowerBi"
+>&lt;/a>&lt;/p>
+&lt;p>Then have an interactive report like this. Feel free to click around and see how it works. Use the arrows at the bottom right to go full-screen. NOTE – it filters by “today” so if I haven’t run the check and the import then click on one of the groups under “Today’s Checks by Group”&lt;/p>
+&lt;p>This enables me to filter the results and see what has happened in the past so I can filter by one instance&lt;/p>
+&lt;p>&lt;a class="link" href="assets/uploads/2018/05/05-filter-by-instance.png" >&lt;img src="https://dbachecks.io/assets/uploads/2018/05/05-filter-by-instance.png"
+loading="lazy"
+alt="05 - filter by instance"
+>&lt;/a>&lt;/p>
+&lt;p>or I can filter by a group of tests&lt;/p>
+&lt;p>&lt;a class="link" href="assets/uploads/2018/05/07-filter-by-instance.png" >&lt;img src="https://dbachecks.io/assets/uploads/2018/05/07-filter-by-instance.png"
+loading="lazy"
+alt="07 - filter by instance"
+>&lt;/a>&lt;/p>
+&lt;p>or even by a group of tests for an instance&lt;/p>
+&lt;p>&lt;a class="link" href="assets/uploads/2018/05/08-filter-by-instance-and-insance.png" >&lt;img src="https://dbachecks.io/assets/uploads/2018/05/08-filter-by-instance-and-insance.png"
+loading="lazy"
+alt="08 - filter by instance and insance"
+>&lt;/a>&lt;/p>
+&lt;p>Hopefully, this will give you some ideas of what you can do with your dbachecks results. &lt;a class="link" href="https://github.com/SQLDBAWithABeard/dbachecks-expanded" target="_blank" rel="noopener"
+>You can find all of the code and the PowerBi in my GitHub&lt;/a>&lt;/p>
+&lt;p>Happy Validating!&lt;/p></description></item></channel></rss>
