@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Pspowerhour on dbachecks</title><link>https://dbachecks.io/tags/pspowerhour/</link><description>Recent content in Pspowerhour on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 29 Sep 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/tags/pspowerhour/index.xml" rel="self" type="application/rss+xml"/><item><title>Checking Trace Flags with dbachecks, online docs and PSPowerHour</title><link>https://dbachecks.io/blog/checking-trace-flags-with-dbachecks-online-docs-and-pspowerhour/</link><pubDate>Sat, 29 Sep 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/checking-trace-flags-with-dbachecks-online-docs-and-pspowerhour/</guid><description>&lt;p&gt;It’s been a few weeks since i have blogged as I have been busy with a lot of other things. One of which is preparing for &lt;a class="link" href="https://www.pass.org/summit/2018/Sessions/Details.aspxsid=80306" target="_blank" rel="noopener"
+&gt;my SQL Pass Summit pre-con&lt;/a&gt; which has lead to me improving the CI/CD for &lt;a class="link" href="http://dbachecks.io" target="_blank" rel="noopener"
+&gt;dbachecks&lt;/a&gt; by adding auto-creation of online documentation, which you can find at &lt;a class="link" href="https://dbachecks.readthedocs.io" target="_blank" rel="noopener"
+&gt;https://dbachecks.readthedocs.io&lt;/a&gt; or by running Get-Help with the -Online switch for any dbachecks command.&lt;/p&gt;
+&lt;p&gt;Get-Help Invoke-DbcCheck -Online&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/01-online-help.png"
+loading="lazy"
+alt="01 - online help.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;I will blog about how dbachecks uses &lt;a class="link" href="https://azure.microsoft.com/en-us/services/devops/" target="_blank" rel="noopener"
+&gt;Azure DevOps&lt;/a&gt; to do this another time&lt;/p&gt;
+&lt;h2 id="pspowerhour"&gt;PSPowerHour
+&lt;/h2&gt;&lt;p&gt;The PowerShell community members &lt;a class="link" href="https://twitter.com/barbariankb" target="_blank" rel="noopener"
+&gt;Michael T Lombardi&lt;/a&gt; and &lt;a class="link" href="http://twitter.com/psCookieMonster" target="_blank" rel="noopener"
+&gt;Warren Frame&lt;/a&gt; have created &lt;a class="link" href="https://github.com/PSPowerHour/PSPowerHour" target="_blank" rel="noopener"
+&gt;PSPowerHour&lt;/a&gt;. PSPowerHour is “like a virtual User Group, with a lightning-demo format, and room for non-PowerShell-specific content. Eight community members will give a demo each PowerHour.”&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="http://twitter.com/cl" target="_blank" rel="noopener"
+&gt;Chrissy&lt;/a&gt; blogged about the first one &lt;a class="link" href="https://dbatools.io/pspowerhour/" target="_blank" rel="noopener"
+&gt;on the dbatools blog&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;You can watch the videos on the &lt;a class="link" href="https://www.youtube.com/channel/UCtHKcGei3EjxBNYQCFZ3WNQ" target="_blank" rel="noopener"
+&gt;Youtube channel&lt;/a&gt; and keep an eye out for more online &lt;a class="link" href="https://twitter.com/hashtag/PSPowerHoursrc=hash" target="_blank" rel="noopener"
+&gt;PSPowerHours via twitter&lt;/a&gt; or &lt;a class="link" href="https://github.com/PSPowerHour/PSPowerHour" target="_blank" rel="noopener"
+&gt;the GitHub page&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;While watching the first group of sessions &lt;a class="link" href="https://twitter.com/awickham" target="_blank" rel="noopener"
+&gt;Andrew Wickham&lt;/a&gt; demonstrated using dbatools with trace flags and I thought that needs to be added to dbachecks so I created &lt;a class="link" href="https://github.com/dataplat/dbachecks/issues/529" target="_blank" rel="noopener"
+&gt;an issue.&lt;/a&gt; Anyone can do this to file improvements as well as bugs for members of the team to code.&lt;/p&gt;
+&lt;h2 id="trace-flags"&gt;Trace Flags
+&lt;/h2&gt;&lt;p&gt;The previous release of dbachecks brought 2 new checks for traceflags. One for traceflags expected to be running and one for traceflags not expected to be running.&lt;/p&gt;
+&lt;p&gt;You will need to have installed &lt;a class="link" href="https://www.powershellgallery.com/packages/dbachecks" target="_blank" rel="noopener"
+&gt;dbachecks from the PowerShell Gallery&lt;/a&gt; to do this. This can be done using&lt;/p&gt;
+&lt;p&gt;Install-Module -Name dbachecks&lt;/p&gt;
+&lt;p&gt;Once dbachecks is installed you can find the checks using&lt;/p&gt;
+&lt;p&gt;Get-DBcCheck&lt;/p&gt;
+&lt;p&gt;you can filter using the pattern parameter&lt;/p&gt;
+&lt;p&gt;Get-DBcCheck -Pattern traceflag&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/02-get0dbcconfig.png"
+loading="lazy"
+alt="02 - get0dbcconfig.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;This will show you&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;the UniqueTag which will enable you to run only that check if you wish&lt;/li&gt;
+&lt;li&gt;AllTags which shows which tags will include that check&lt;/li&gt;
+&lt;li&gt;Config will show you which configuration items can be set for this check&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The trace flag checks require the app.sqlinstance configuration which is the list of SQL instances that the checks will run against. You can also specify the instances as a parameter for &lt;a class="link" href="https://dbachecks.readthedocs.io/en/latest/functions/Invoke-DbcCheck/" target="_blank" rel="noopener"
+&gt;Invoke-DbCheck&lt;/a&gt; as well.&lt;/p&gt;
+&lt;p&gt;The configuration for the expected traceflags is policy.traceflags.expected By default it is set to null. You can see what configuration it has using&lt;/p&gt;
+&lt;p&gt;Get-DBcConfig policy.traceflags.expected&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/get-dbcconfig.png"
+loading="lazy"
+alt="get-dbcconfig.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;So if you want to check that there are no trace flags running, then you can run&lt;/p&gt;
+&lt;p&gt;$instance = &amp;lsquo;sql0&amp;rsquo;
+Set-DbcConfig -Name app.sqlinstance -Value $instance
+Invoke-DbcCheck -Check TraceFlagsExpected&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/check-1.png"
+loading="lazy"
+alt="check 1.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;Maybe this instance is required to have &lt;a class="link" href="https://blogs.msdn.microsoft.com/sql_pfe_blog/2017/07/18/trace-flag-1117-growth-and-contention/" target="_blank" rel="noopener"
+&gt;trace flag 1117 enabled&lt;/a&gt; so that &lt;a class="link" href="https://www.brentozar.com/archive/2014/06/trace-flags-1117-1118-tempdb-configuration/" target="_blank" rel="noopener"
+&gt;all files in a file group grow equally&lt;/a&gt;, you can set the trace flag you expect to be running using&lt;/p&gt;
+&lt;p&gt;Set-DbcConfig -Name policy.traceflags.expected -Value 1117&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/set-config.png"
+loading="lazy"
+alt="set config.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;Now you when you run the check it fails&lt;/p&gt;
+&lt;p&gt;Invoke-DbcCheck -Check TraceFlagsExpecte&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/not-found.png"
+loading="lazy"
+alt="not found.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;and gives you the error message&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt; [-] Expected Trace Flags 1117 exist on sql0 593ms
+Expected 1117 to be found in collection @(), because We expect that Trace Flag 1117 will be set on sql0, but it was not found.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;So we have a failing test. We need to fix that. We can use &lt;a class="link" href="http://dbatools.io" target="_blank" rel="noopener"
+&gt;dbatools&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Enable-DbaTraceFlag -SqlInstance $instance -TraceFlag 1117&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/set-traceflag.png"
+loading="lazy"
+alt="set traceflag.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;This time when we run the check&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Invoke-DbcCheck -Check TraceFlagsExpected&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;it passes&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/passed-test.png"
+loading="lazy"
+alt="passed test"
+&gt;&lt;/p&gt;
+&lt;p&gt;If you just need to see what trace flags are enabled you can use&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Get-DbaTraceFlag -SqlInstance $instance&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/get-trace-flag.png"
+loading="lazy"
+alt="get trace flag.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;Reset the configuration for the expected trace flag to an empty array and then set the configuration for traceflags we do not expect to be running to 1117&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;div class="chroma"&gt;
+&lt;table class="lntable"&gt;&lt;tr&gt;&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code&gt;&lt;span class="lnt"&gt;1
+&lt;/span&gt;&lt;span class="lnt"&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td class="lntd"&gt;
+&lt;pre tabindex="0" class="chroma"&gt;&lt;code class="language-fallback" data-lang="fallback"&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;Set-DbcConfig -Name policy.traceflags.expected -Value @()
+&lt;/span&gt;&lt;/span&gt;&lt;span class="line"&gt;&lt;span class="cl"&gt;Set-DbcConfig -Name policy.traceflags.notexpected -Value 1117
+&lt;/span&gt;&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/set-config-2.png"
+loading="lazy"
+alt="set config 2.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;and then run the trace flags not expected to be running check with&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Invoke-DbcCheck -Check TraceFlagsNotExpected&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;It will fail as 1117 is still running&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/not-expected-fail.png"
+loading="lazy"
+alt="not expected fail.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;and give the message&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;[-] Expected Trace Flags 1117 to not exist on sql0 321ms
+Expected 1117 to not be found in collection 1117, because We expect that Trace Flag 1117 will not be set on sql0, but it was found.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;p&gt;So to resolve this failing check we need to disable the trace flag and we can do that with dbatools using&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Disable-DbaTraceFlag -SqlInstance $instance -TraceFlag 1117&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/disable-trace-flag-1.png"
+loading="lazy"
+alt="disable trace flag"
+&gt;&lt;/p&gt;
+&lt;p&gt;and now when we run the check&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Invoke-DbcCheck -Check TraceFlagsNotExpected&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;it passes&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/passed-bnot-expected.png"
+loading="lazy"
+alt="passed bnot expected.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;The checks also work with multiple traceflags so you can set multiple values for trace flags that are not expexted to be running&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Set-DbcConfig -Name policy.traceflags.notexpected -Value 1117, 1118&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;and as we saw earlier, you can run both trace flag checks using&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;Invoke-DbcCheck -Check TraceFlag&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2018/09/multi-checks.png"
+loading="lazy"
+alt="multi checks.png"
+&gt;&lt;/p&gt;
+&lt;p&gt;You can use this or any of the 95 available checks to validate that your SQL instances, singular or your whole estate are as you expect them to be.&lt;/p&gt;</description></item></channel></rss>

@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Adsnotebook on dbachecks</title><link>https://dbachecks.io/tags/adsnotebook/</link><description>Recent content in Adsnotebook on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Fri, 29 Nov 2019 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/tags/adsnotebook/index.xml" rel="self" type="application/rss+xml"/><item><title>How to fork a GitHub repository and contribute to an open source project</title><link>https://dbachecks.io/blog/how-to-fork-a-github-repository-and-contribute-to-an-open-source-project/</link><pubDate>Fri, 29 Nov 2019 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/how-to-fork-a-github-repository-and-contribute-to-an-open-source-project/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2019/11/CreatePR.png" alt="Featured image of post How to fork a GitHub repository and contribute to an open source project" /&gt;&lt;p&gt;I enjoy maintaining open source GitHub repositories such as &lt;a class="link" href="https://github.com/dataplat/dbachecks" target="_blank" rel="noopener"
+&gt;dbachecks&lt;/a&gt; and &lt;a class="link" href="https://github.com/dataplat/ADSNotebook" target="_blank" rel="noopener"
+&gt;ADSNotebook&lt;/a&gt;. I absolutely love it when people add more functionality to them.&lt;/p&gt;
+&lt;p&gt;To collaborate with a repository in GitHub you need to follow these steps&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/GitHub.png"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Fork the repository into your own GitHub&lt;/li&gt;
+&lt;li&gt;Clone the repository to your local machine&lt;/li&gt;
+&lt;li&gt;Create a new branch for your changes&lt;/li&gt;
+&lt;li&gt;Make some changes and commit them with useful messages&lt;/li&gt;
+&lt;li&gt;Push the changes to your repository&lt;/li&gt;
+&lt;li&gt;Create a Pull Request from your repository back to the original one&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;You will need to have &lt;code&gt;git.exe&lt;/code&gt; available which you can download and install from &lt;a class="link" href="https://git-scm.com/downloads" target="_blank" rel="noopener"
+&gt;https://git-scm.com/downloads&lt;/a&gt; if required&lt;/p&gt;
+&lt;h2 id="fork-the-repository-into-your-own-github"&gt;Fork the repository into your own GitHub
+&lt;/h2&gt;&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/ForkRepo.png"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;A fork is a copy of the original repository. This allows you to make changes without affecting the original project. It does not get updated when the original project gets updated (We will talk about that in the next post) This enables you to code a new feature or a bug fix, test it locally and make sure it is working.&lt;/p&gt;
+&lt;p&gt;Let’s take dbachecks as our example. Start by going to the project in GiHub. In this case the URL is &lt;a class="link" href="https://github.com/dataplat/dbachecks" target="_blank" rel="noopener"
+&gt;https://github.com/dataplat/dbachecks&lt;/a&gt; You will see a Fork button at the top right of the page&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-41.png?fit=630%2C74&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;When you click the button the repository is copied into your own GitHub account&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-42.png?resize=630%2C304&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;The page will open at &lt;a class="link" href="https://github.com/SQLDBAWithABeard/dbachecks" target="_blank" rel="noopener"
+&gt;https://github.com/YOURGITHUBUSERNAME/NameOfRepository&lt;/a&gt; in this case &lt;a class="link" href="https://github.com/SQLDBAWithABeard/dbachecks" target="_blank" rel="noopener"
+&gt;https://github.com/SQLDBAWithABeard/dbachecks&lt;/a&gt; You will be able to see that it is a fork of the original repository at the top of the page&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-43.png?resize=474%2C119&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;h2 id="clone-the-repository-to-your-local-machine"&gt;Clone the repository to your local machine
+&lt;/h2&gt;&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/CloneRepo-2.png?resize=630%2C218&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;Forking the repository has created a &lt;em&gt;remote&lt;/em&gt; repository stored on the GitHub servers. Now that the repository has been forked you need to clone it to your local machine to create a &lt;em&gt;local&lt;/em&gt; repository so that you can start coding your amazing fix. When you have finished you can then sync it back to your &lt;em&gt;remote&lt;/em&gt; repository ready for a Pull Request back to the original repository.&lt;/p&gt;
+&lt;p&gt;In your browser, at your &lt;em&gt;remote&lt;/em&gt; repository that you just created (&lt;a class="link" href="https://github.com/SQLDBAWithABeard/dbachecks" target="_blank" rel="noopener"
+&gt;https://github.com/YOURGITHUBUSERNAME/NameOfRepository&lt;/a&gt; if you have closed the page) click on &lt;code&gt;Clone or Download&lt;/code&gt; and then the icon to the right to copy the url&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-46.png?fit=630%2C316&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;You can clone your repository in &lt;a class="link" href="https://code.visualstudio.com/" target="_blank" rel="noopener"
+&gt;VS Code&lt;/a&gt; or &lt;a class="link" href="https://aka.ms/azuredatastudio" target="_blank" rel="noopener"
+&gt;Azure Data Studio&lt;/a&gt; by clicking F1 or CTRL + SHIFT + P in Windows or Linux and ⇧⌘P or F1 on a Mac&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-44.png?fit=630%2C206&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;then start typing clone until you see &lt;code&gt;Git:Clone&lt;/code&gt; and press enter or click&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-45.png?fit=630%2C100&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;Paste in the URL that you just copied and click enter. A dialog will open asking you to select a folder. This is the parent directory where your &lt;em&gt;local&lt;/em&gt; repository will be created. The clone will create a directory for your repository so you do not need to. I suggest that you use a folder called GitHub or something similar to place all of the repositories that you are going to clone and create.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-47.png?fit=630%2C345&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;When it has finished it will ask you if you wish to open the repository&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-49.png?fit=630%2C215&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;if you click &lt;code&gt;Open&lt;/code&gt; it will close anything that you have already got opened and open the folder. If you click &lt;code&gt;Add to Workspace&lt;/code&gt; it will add the folder to the workspace and leave everything you already had open as it was and surprisingly clicking &lt;code&gt;Open in New Window&lt;/code&gt; will open the folder in a new instance of Visual Studio Code or Azure Data Studio!&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-51.png?fit=630%2C997&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;and you will also be able to see the local repository files on your computer&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-50.png?resize=442%2C244&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;You can clone the repository at the command line if you wish by navigating to your local GitHub directory and running &lt;code&gt;git clone TheURLYouCopied&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-48.png?fit=630%2C165&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;Now your &lt;em&gt;local&lt;/em&gt; repository has been created, it’s time to do your magic coding.&lt;/p&gt;
+&lt;h2 id="create-a-new-branch-for-your-changes"&gt;Create a new branch for your changes
+&lt;/h2&gt;&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/NewBranch.png?resize=630%2C218&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;It is a good idea to create a branch for your &lt;code&gt;amazing new feature&lt;/code&gt; This enables you to work on coding for that feature in isolation. It has the added advantage that if you mess it right royally up, you can just delete that branch and start again with a new one!&lt;/p&gt;
+&lt;p&gt;To create a branch in VS Code or Azure Data Studio you can click on the branch name at the bottom left.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-52.png?resize=630%2C284&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;Or open the Command Palette and type Branch until you see &lt;code&gt;Git: Create Branch&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-53.png?fit=630%2C282&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;You will be prompted for a branch name&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-54.png?fit=630%2C96&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;I like to choose a name that relates to the code that I am writing like &lt;code&gt;configurable_engine&lt;/code&gt; or &lt;code&gt;removeerroringexample&lt;/code&gt; You can see the name of the branch in the bottom left so that you always know which branch you are working on.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-55.png?fit=630%2C312&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;The icon shows that the branch is only &lt;em&gt;local&lt;/em&gt; and hasn’t been pushed (published) to the &lt;em&gt;remote&lt;/em&gt; repository yet&lt;/p&gt;
+&lt;h2 id="make-some-changes-and-commit-them-with-useful-messages"&gt;Make some changes and commit them with useful messages
+&lt;/h2&gt;&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/awesomenewfeature.png?resize=630%2C246&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;Now you can start writing your code for your awesome new feature, bug fix or maybe just documentation improvement. Keep your commits small and give them useful commit messages that explain &lt;em&gt;why&lt;/em&gt; you have made the change as the diff tooling will be able to show &lt;em&gt;what&lt;/em&gt; change you have made&lt;/p&gt;
+&lt;p&gt;Write your code or change the documentation, save the file and in Visual Studio Code or Azure Data Studio you will see that the source control icon has a number on it&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-56.png?fit=630%2C143&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;Clicking on the icon will show the files that have changes ready&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-57.png?fit=630%2C290&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;You can write your commit message in the box and click CTRL + ENTER to commit your changes with a message&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-58.png?fit=630%2C296&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;If you want to do this at the command line, you can use &lt;code&gt;git status&lt;/code&gt; to see which files have changes&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-59.png?fit=630%2C195&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;You will need to &lt;code&gt;git add .&lt;/code&gt;or &lt;code&gt;git add .\pathtofile&lt;/code&gt; to stage your changes ready for committing and then &lt;code&gt;git commit -m 'Commit Message'&lt;/code&gt; to commit them&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-60.png?fit=630%2C128&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;Notice that I did exactly what I just said not to do! A better commit message would have been &lt;em&gt;So that people can find the guide to forking and creating a PR&lt;/em&gt;&lt;/p&gt;
+&lt;h2 id="push-the-changes-to-your-repository"&gt;Push the changes to your repository
+&lt;/h2&gt;&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/publishbranch.png?resize=630%2C219&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;You only have the changes that you have made in your &lt;em&gt;local&lt;/em&gt; repository on your computer. Now you need to push those changes to GitHub your &lt;em&gt;remote&lt;/em&gt; repository. You can click on the publish icon&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-55.png?resize=630%2C312&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;You will get a pop-up asking you if you wish to stage your changes. I click &lt;code&gt;Yes&lt;/code&gt; and never &lt;code&gt;Always&lt;/code&gt; so that I can use this prompt as a sanity check that I am doing the right thing&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-75.png?fit=630%2C150&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;At the command line you can push the branch, if you do that, you will have to tell git where the branch needs to go. If you just type &lt;code&gt;git push&lt;/code&gt; it will helpfully tell you&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-61.png?fit=630%2C121&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;fatal: The current branch AwesomeNewFeature has no upstream branch.
+To push the current branch and set the remote as upstream, use
+git push --set-upstream origin AwesomeNewFeature
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;So you will need to use that command&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-62.png?fit=630%2C282&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;You can see in the bottom left that the icon has changed&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-63.png?fit=630%2C186&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;and if you read the output of the &lt;code&gt;git push&lt;/code&gt; command you will see what the next step is also.&lt;/p&gt;
+&lt;h2 id="create-a-pull-request-from-your-repository-back-to-the-original-one"&gt;Create a Pull Request from your repository back to the original one
+&lt;/h2&gt;&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/CreatePR.png?resize=630%2C238&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;You can CTRL click the link in the &lt;code&gt;git push&lt;/code&gt; output if you have pushed from the command line or if you visit either you repository or the original repository in your browser you will see that there is a &lt;code&gt;Compare and Pull Request&lt;/code&gt; button&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-64.png?fit=630%2C334&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;You click that and let GitHub do its magic&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-65.png?fit=630%2C459&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;and it will create a Pull Request for you ready for you to fill in the required information, ask for reviewers and other options. Once you have done that you can click &lt;code&gt;Create pull request&lt;/code&gt; and wait for the project maintainer to review it and (hopefully) accept it into their project&lt;/p&gt;
+&lt;p&gt;You can find the Pull Request that I created here &lt;a class="link" href="https://github.com/dataplat/dbachecks/pull/720" target="_blank" rel="noopener"
+&gt;https://github.com/dataplat/dbachecks/pull/720&lt;/a&gt; and see how the rest of this blog post was created.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-66.png?fit=630%2C489&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;If you make more changes to the code in the same branch in your &lt;em&gt;local&lt;/em&gt; repository and push them, they will automatically be added to this Pull Request whilst it is open. You can do this if the maintainer or reviewer asks for changes.&lt;/p&gt;
+&lt;p&gt;Shane has asked for a change&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-67.png?resize=630%2C110&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;So I can go to my &lt;em&gt;local&lt;/em&gt; repository in Azure Data Studio and make the requested change and save the file. If I look in the source control in Azure Data Studio I can again see there is a change waiting to be committed and if I click on the name of the file I can open the diff tool to see what the change was&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-68.png?fit=630%2C128&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;Once I am happy with my change I can commit it again in the same way as before either in the editor or at the command line. The icon at the bottom will change to show that I have one commit in my &lt;em&gt;local&lt;/em&gt; repository waiting to be pushed&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-69.png?fit=630%2C160&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;To do the same thing at the command line I can type &lt;code&gt;git status&lt;/code&gt; and see the same thing.&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-70.png?fit=630%2C138&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;I can then push my change to my remote repository either in the GUI or by using &lt;code&gt;git push&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-72.png?fit=630%2C213&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;and it will automatically be added to the Pull Request as you can see&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-73.png?fit=630%2C480&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;Now that the required changes for the review have been made, the review has been approved by Shane and the pull request is now ready to be merged. (You can also see that dbachecks runs some checks against the code when a Pull Request is made)&lt;/p&gt;
+&lt;p&gt;&lt;img src="https://blog.robsewell.com/assets/uploads/2019/11/image-74.png?resize=630%2C359&amp;amp;ssl=1"
+loading="lazy"
+&gt;&lt;/p&gt;
+&lt;p&gt;Many, many thanks to Shane &lt;a class="link" href="https://twitter.com/sozdba" target="_blank" rel="noopener"
+&gt;b&lt;/a&gt; | &lt;a class="link" href="https://nocolumnname.blog/" target="_blank" rel="noopener"
+&gt;t&lt;/a&gt; who helped with the writing of this post even whilst on a “no tech” holiday.&lt;/p&gt;
+&lt;h2 id="go-ahead--contribute-to-an-open-source-project"&gt;Go Ahead – Contribute to an Open Source Project
+&lt;/h2&gt;&lt;p&gt;Hopefully you can now see how easy it is to create a fork of a GitHub repository, clone it to your own machine and contribute. There are many open source projects that you can contribute to.&lt;/p&gt;
+&lt;p&gt;You can use this process to contribute to the Microsoft Docs for example by clicking on the edit button on any page.&lt;/p&gt;
+&lt;p&gt;You can contribute other open source projects like&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a class="link" href="https://github.com/PowerShell/PowerShell" target="_blank" rel="noopener"
+&gt;PowerShell&lt;/a&gt;&lt;/strong&gt; by Microsoft&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a class="link" href="https://github.com/microsoft/tigertoolbox" target="_blank" rel="noopener"
+&gt;tigertoolbox&lt;/a&gt;&lt;/strong&gt; by Microsoft Tiger Team&lt;/li&gt;
+&lt;li&gt;&lt;a class="link" href="https://github.com/dataplat/dbatools" target="_blank" rel="noopener"
+&gt;dbatools&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="link" href="https://github.com/dataplat/dbachecks" target="_blank" rel="noopener"
+&gt;dbachecks&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="link" href="https://github.com/dataplat/ADSNotebook" target="_blank" rel="noopener"
+&gt;ADSNotebook&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a class="link" href="https://github.com/dataplat/PSDatabaseClone" target="_blank" rel="noopener"
+&gt;PSDatabaseClone&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a class="link" href="https://github.com/OpenQueryStore/OpenQueryStore" target="_blank" rel="noopener"
+&gt;OpenQueryStore&lt;/a&gt;&lt;/strong&gt; by William Durkin and Enrico van de Laar&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a class="link" href="https://github.com/marcingminski/sqlwatch" target="_blank" rel="noopener"
+&gt;sqlwatch&lt;/a&gt;&lt;/strong&gt; by Marcin Gminski&lt;/li&gt;
+&lt;li&gt;&lt;a class="link" href="https://github.com/red-gate/SQLCop" target="_blank" rel="noopener"
+&gt;SQLCop&lt;/a&gt; by Redgate&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a class="link" href="https://github.com/amachanic/sp_whoisactive" target="_blank" rel="noopener"
+&gt;sp_whoisactive&lt;/a&gt;&lt;/strong&gt; by Adam Machanic&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a class="link" href="https://github.com/olahallengren/sql-server-maintenance-solution" target="_blank" rel="noopener"
+&gt;sql-server-maintenance-solution&lt;/a&gt;&lt;/strong&gt; by Ola Hallengren&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a class="link" href="https://github.com/BrentOzarULTD/SQL-Server-First-Responder-Kit" target="_blank" rel="noopener"
+&gt;SQL-Server-First-Responder-Kit&lt;/a&gt;&lt;/strong&gt; by Brent Ozar Unlimited&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a class="link" href="https://github.com/pester/Pester" target="_blank" rel="noopener"
+&gt;Pester&lt;/a&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;li&gt;&lt;strong&gt;&lt;a class="link" href="https://github.com/microsoft/ReportingServicesTools" target="_blank" rel="noopener"
+&gt;ReportingServicesTools&lt;/a&gt;&lt;/strong&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;or go and find the the ones that you use and can help with.&lt;/p&gt;</description></item></channel></rss>
