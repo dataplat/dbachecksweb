@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Psconfeu on dbachecks</title><link>https://dbachecks.io/tags/psconfeu/</link><description>Recent content in Psconfeu on dbachecks</description><generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Tue, 01 May 2018 00:00:00 +0000</lastBuildDate><atom:link href="https://dbachecks.io/tags/psconfeu/index.xml" rel="self" type="application/rss+xml"/><item><title>Version Update, Code Signing and publishing to the PowerShell Gallery with VSTS</title><link>https://dbachecks.io/blog/version-update-code-signing-and-publishing-to-the-powershell-gallery-with-vsts/</link><pubDate>Tue, 01 May 2018 00:00:00 +0000</pubDate><guid>https://dbachecks.io/blog/version-update-code-signing-and-publishing-to-the-powershell-gallery-with-vsts/</guid><description>&lt;img src="https://dbachecks.io/assets/uploads/2018/05/32-Dashboard.png" alt="Featured image of post Version Update, Code Signing and publishing to the PowerShell Gallery with VSTS" /&gt;&lt;p&gt;At the fabulous &lt;a class="link" href="http://psconf.eu" target="_blank" rel="noopener"
+&gt;PowerShell Conference EU&lt;/a&gt; I presented about Continuous Delivery to the PowerShell Gallery with VSTS and explained how we use VSTS to enable CD for &lt;a class="link" href="http://dbachecks.io" target="_blank" rel="noopener"
+&gt;dbachecks&lt;/a&gt;. We even released a new version during the session 🙂&lt;/p&gt;
+&lt;!-- raw HTML omitted --&gt;
+&lt;p&gt;So how do we achieve this?&lt;/p&gt;
+&lt;p&gt;We have a few steps&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Create a project and link to our GitHub&lt;/li&gt;
+&lt;li&gt;Run unit uests with Pester to make sure that our code is doing what we expect.&lt;/li&gt;
+&lt;li&gt;Update our module version and commit the change to GitHub&lt;/li&gt;
+&lt;li&gt;Sign our code with a code signing certificate&lt;/li&gt;
+&lt;li&gt;Publish to the PowerShell Gallery&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id="create-project-and-link-to-github"&gt;Create Project and link to GitHub
+&lt;/h2&gt;&lt;p&gt;First you need to create a VSTS project by going to &lt;a class="link" href="https://www.visualstudio.com/" target="_blank" rel="noopener"
+&gt;https://www.visualstudio.com/&lt;/a&gt; This is free for up to 5 users with 1 concurrent CI/CD queue limited to a maximum of 60 minutes run time which should be more than enough for your PowerShell module.&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/01-sign-up-1.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/01-sign-up-1.png"
+loading="lazy"
+alt="01 - sign up.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Click on Get Started for free under Visual Studio Team Services and fill in the required information. Then on the front page click new project&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/02-New-Project.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/02-New-Project.png"
+loading="lazy"
+alt="02 - New Project.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Fill in the details and click create&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/03-create-project.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/03-create-project.png"
+loading="lazy"
+alt="03 - create project.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Click on builds and then new definition&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/04-builds.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/04-builds.png"
+loading="lazy"
+alt="04- builds.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;next you need to link your project to your GitHub (or other source control providers) repository&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/05-github-auth.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/05-github-auth.png"
+loading="lazy"
+alt="05 - github auth.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;You can either authorise with OAuth or you can &lt;a class="link" href="https://help.github.com/articles/creating-a-personal-access-token-for-the-command-line/" target="_blank" rel="noopener"
+&gt;provide a PAT token following the instructions here&lt;/a&gt;. Once that is complete choose your repo. Save the PAT as you will need it later in the process!&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/06-choose-repo.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/06-choose-repo.png"
+loading="lazy"
+alt="06 - choose repo.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;and choose the branch that you want this build definition to run against.&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/07-branch.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/07-branch.png"
+loading="lazy"
+alt="07 branch.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;I chose to run the Unit Tests when a PR was merged into the development branch. I will then create another build definition for the master branch to sign the code and update module version. This enables us to push several PRs into the development branch and create a single release for the gallery.&lt;/p&gt;
+&lt;p&gt;Then I start with an empty process&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/08-empty-process.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/08-empty-process.png"
+loading="lazy"
+alt="08 - empty process.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;and give it a suitable name&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/09-name-it.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/09-name-it.png"
+loading="lazy"
+alt="09 - name it.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;i chose the hosted queue but you can download an agent to your build server if you need to do more or your integration tests require access to other resources not available on the hosted agent.&lt;/p&gt;
+&lt;h2 id="run-unit-tests-with-pester"&gt;Run Unit Tests with Pester
+&lt;/h2&gt;&lt;p&gt;We have a number of Unit tests in our &lt;a class="link" href="https://github.com/dataplat/dbachecks/tree/development/tests" target="_blank" rel="noopener"
+&gt;tests folder in dbachecks&lt;/a&gt; so we want to run them to ensure that everything is as it should be and the new code will not break existing functionality (and for dbachecks the &lt;a class="link" href="https://dbachecks.io/using-the-ast-in-pester-for-dbachecks/" &gt;format of the PowerBi&lt;/a&gt;)&lt;/p&gt;
+&lt;p&gt;You can use the &lt;a class="link" href="https://marketplace.visualstudio.com/items?itemName=richardfennellBM.BM-VSTS-PesterRunner-Task" target="_blank" rel="noopener"
+&gt;Pester Test Runner Build Task&lt;/a&gt; from the folk at &lt;a class="link" href="http://blackmarble.com/" target="_blank" rel="noopener"
+&gt;Black Marble&lt;/a&gt; by clicking on the + sign next to Phase 1 and searching for Pester&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/10-Pester-task-runner.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/10-Pester-task-runner.png"
+loading="lazy"
+alt="10 - Pester task runner.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;You will need to click Get It Free to install it and then click add to add the task to your build definition. You can pretty much leave it as default if you wish and Pester will run all of the *.Tests.ps1 files that it finds in the directory where it downloads the GitHub repo which is referred to using the variable $(Build.SourcesDirectory). It will then output the results to a json file called Test-Pester.XML ready for publishing.&lt;/p&gt;
+&lt;p&gt;However, as dbachecks has a number of dependent modules, this task was not suitable. I spoke with Chris Gardner  &lt;a class="link" href="https://chrislgardner.github.io/" target="_blank" rel="noopener"
+&gt;b&lt;/a&gt; | &lt;a class="link" href="https://twitter.com/HalbaradKenafin" target="_blank" rel="noopener"
+&gt;t&lt;/a&gt;  from Black Marble at the PowerShell Conference and he says that this can be resolved so look out for the update. Chris is a great guy and always willing to help, you can often find him in the &lt;a class="link" href="http://slack.poshcode.org/" target="_blank" rel="noopener"
+&gt;PowerShell Slack channel&lt;/a&gt; answering questions and helping people&lt;/p&gt;
+&lt;p&gt;But as you can use PowerShell in VSTS tasks, this is not a problem although you need to write your PowerShell using try catch to make sure that your task fails when your PowerShell errors. This is the code I use to install the modules&lt;/p&gt;
+&lt;p&gt;$ErrorActionPreference = &amp;lsquo;Stop&amp;rsquo;&lt;/p&gt;
+&lt;p&gt;# Set location to module home path in artifacts directory
+try {
+Set-Location $(Build.SourcesDirectory)
+Get-ChildItem
+}
+catch {
+Write-Error &amp;ldquo;Failed to set location&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;}&lt;/p&gt;
+&lt;p&gt;# Get the Module versions
+Install-Module Configuration -Scope CurrentUser -Force
+$Modules = Get-ManifestValue -Path .\dbachecks.psd1 -PropertyName RequiredModules&lt;/p&gt;
+&lt;p&gt;$PesterVersion = $Modules.Where{$&lt;em&gt;.Get_Item(&amp;lsquo;ModuleName&amp;rsquo;) -eq &amp;lsquo;Pester&amp;rsquo;}[0].Get_Item(&amp;lsquo;ModuleVersion&amp;rsquo;)
+$PSFrameworkVersion = $Modules.Where{$&lt;/em&gt;.Get_Item(&amp;lsquo;ModuleName&amp;rsquo;) -eq &amp;lsquo;PSFramework&amp;rsquo;}[0].Get_Item(&amp;lsquo;ModuleVersion&amp;rsquo;)
+$dbatoolsVersion = $Modules.Where{$_.Get_Item(&amp;lsquo;ModuleName&amp;rsquo;) -eq &amp;lsquo;dbatools&amp;rsquo;}[0].Get_Item(&amp;lsquo;ModuleVersion&amp;rsquo;)&lt;/p&gt;
+&lt;p&gt;# Install Pester
+try {
+Write-Output &amp;ldquo;Installing Pester&amp;rdquo;
+Install-Module Pester -RequiredVersion $PesterVersion -Scope CurrentUser -Force -SkipPublisherCheck
+Write-Output &amp;ldquo;Installed Pester&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;}
+catch {
+Write-Error &amp;ldquo;Failed to Install Pester $($_)&amp;rdquo;
+}
+# Install dbatools
+try {
+Write-Output &amp;ldquo;Installing PSFramework&amp;rdquo;
+Install-Module PSFramework -RequiredVersion $PsFrameworkVersion -Scope CurrentUser -Force
+Write-Output &amp;ldquo;Installed PSFramework&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;}
+catch {
+Write-Error &amp;ldquo;Failed to Install PSFramework $($_)&amp;rdquo;
+}
+# Install dbachecks
+try {
+Write-Output &amp;ldquo;Installing dbatools&amp;rdquo;
+Install-Module dbatools -RequiredVersion $dbatoolsVersion -Scope CurrentUser -Force
+Write-Output &amp;ldquo;Installed dbatools&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;}
+catch {
+Write-Error &amp;ldquo;Failed to Install dbatools $($_)&amp;rdquo;
+}&lt;/p&gt;
+&lt;p&gt;# Add current folder to PSModulePath
+try {
+Write-Output &amp;ldquo;Adding local folder to PSModulePath&amp;rdquo;
+$ENV:PSModulePath = $ENV:PSModulePath + &amp;ldquo;;$pwd&amp;rdquo;
+Write-Output &amp;ldquo;Added local folder to PSModulePath&amp;rdquo;
+$ENV:PSModulePath.Split(&amp;rsquo;;&amp;rsquo;)
+}
+catch {
+Write-Error &amp;ldquo;Failed to add $pwd to PSModulePAth - $_&amp;rdquo;
+}&lt;/p&gt;
+&lt;p&gt;I use the &lt;a class="link" href="https://github.com/PoshCode/Configuration" target="_blank" rel="noopener"
+&gt;Configuration module&lt;/a&gt; from &lt;a class="link" href="https://twitter.com/jaykul" target="_blank" rel="noopener"
+&gt;Joel Bennett&lt;/a&gt; to get the required module versions for the required modules and then add the path to $ENV:PSModulePath so that the modules will be imported. I think this is because the modules did not import correctly without it.&lt;/p&gt;
+&lt;p&gt;Once I have the modules I can then run Pester as follows&lt;/p&gt;
+&lt;p&gt;try {
+Write-Output &amp;ldquo;Installing dbachecks&amp;rdquo;
+Import-Module .\dbachecks.psd1
+Write-Output &amp;ldquo;Installed dbachecks&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;}
+catch {
+Write-Error &amp;ldquo;Failed to Install dbachecks $($_)&amp;rdquo;
+}
+$TestResults = Invoke-Pester .\tests -ExcludeTag Integration,IntegrationTests -Show None -OutputFile $(Build.SourcesDirectory)\Test-Pester.XML -OutputFormat NUnitXml -PassThru&lt;/p&gt;
+&lt;p&gt;if ($TestResults.failedCount -ne 0) {
+Write-Error &amp;ldquo;Pester returned errors&amp;rdquo;
+}&lt;/p&gt;
+&lt;p&gt;As you can see I import the dbachecks module from the local folder, run Invoke-Pester and output the results to an XML file and check that there are no failing tests.&lt;/p&gt;
+&lt;p&gt;Whether you use the task or PowerShell the next step is to Publish the test results so that they are displayed in the build results in VSTS.&lt;/p&gt;
+&lt;p&gt;Click on the + sign next to Phase 1 and search for Publish&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/12-publish-test-results.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/12-publish-test-results.png"
+loading="lazy"
+alt="12 - publish test results.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Choose the Publish Test Results task and leave everything as default unless you have renamed the xml file. This means that on the summary page you will see some test results&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/13-Test-on-sumary-page.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/13-Test-on-sumary-page.png"
+loading="lazy"
+alt="13 - Test on sumary page.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;and on the tests tab you can see more detailed information and drill down into the tests&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/14-detailed-test-report.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/14-detailed-test-report.png"
+loading="lazy"
+alt="14 - detailed test report.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="trigger"&gt;Trigger
+&lt;/h2&gt;&lt;p&gt;The next step is to trigger a build when a commit is pushed to the development branch. Click on Triggers and tick enable continuous integration&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/15-Trigger.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/15-Trigger.png"
+loading="lazy"
+alt="15 Trigger.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="saving-the-build-definition"&gt;Saving the Build Definition
+&lt;/h2&gt;&lt;p&gt;I would normally save the build definition regularly and ensure that there is a good message in the comment. I always tell clients that this is like a commit message for your build process so that you can see the history of the changes for the build definition.&lt;/p&gt;
+&lt;p&gt;You can see the history on the edit tab of the build definition&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/16-build-history.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/16-build-history.png"
+loading="lazy"
+alt="16 - build history.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;If you want to compare or revert the build definition this can be done using the hamburger menu as shown below.&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/17-build-history-compare-revert.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/17-build-history-compare-revert.png"
+loading="lazy"
+alt="17 - build history compare revert.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="update-the-module-version"&gt;Update the Module Version
+&lt;/h2&gt;&lt;p&gt;Now we need to create a build definition for the master branch to update the module version and sign the code ready for publishing to the PowerShell Gallery when we commit or merge to master&lt;/p&gt;
+&lt;p&gt;Create a new build definition as above but this time choose the master branch&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/18-master-build.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/18-master-build.png"
+loading="lazy"
+alt="18 - master build.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Again choose an empty process and name it sensibly, click the + sign next to Phase 1 and search for PowerShell&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/19-PowerShell-task.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/19-PowerShell-task.png"
+loading="lazy"
+alt="19 - PowerShell task.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;I change the version to 2 and use this code. Note that the commit message has ***NO_CI*** in it. Putting this in a commit message tells VSTS not to trigger a build for this commit.&lt;/p&gt;
+&lt;p&gt;$manifest = Import-PowerShellDataFile .\dbachecks.psd1
+[version]$version = $Manifest.ModuleVersion
+Write-Output &amp;ldquo;Old Version - $Version&amp;rdquo;
+# Add one to the build of the version number
+[version]$NewVersion = &amp;ldquo;{0}.{1}.{2}&amp;rdquo; -f $Version.Major, $Version.Minor, ($Version.Build + 1)
+Write-Output &amp;ldquo;New Version - $NewVersion&amp;rdquo;
+# Update the manifest file
+try {
+Write-Output &amp;ldquo;Updating the Module Version to $NewVersion&amp;rdquo;
+$path = &amp;ldquo;$pwd\dbachecks.psd1&amp;rdquo;
+(Get-Content .\dbachecks.psd1) -replace $version, $NewVersion | Set-Content .\dbachecks.psd1 -Encoding string
+Write-Output &amp;ldquo;Updated the Module Version to $NewVersion&amp;rdquo;
+}
+catch {
+Write-Error &amp;ldquo;Failed to update the Module Version - $_&amp;rdquo;
+}&lt;/p&gt;
+&lt;p&gt;try {
+Write-Output &amp;ldquo;Updating GitHub&amp;rdquo;
+git config user.email &amp;ldquo;&lt;a class="link" href="mailto:mrrobsewell@outlook.com" &gt;mrrobsewell@outlook.com&lt;/a&gt;&amp;rdquo;
+git config user.name &amp;ldquo;SQLDBAWithABeard&amp;rdquo;
+git add .\dbachecks.psd1
+git commit -m &amp;ldquo;Updated Version Number to $NewVersion ***NO_CI***&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;git push https://$(RobsGitHubPAT)@github.com/dataplat/dbachecks.git HEAD:master
+Write-Output &amp;ldquo;Updated GitHub &amp;quot;&lt;/p&gt;
+&lt;p&gt;}
+catch {
+$_ | Fl -Force
+Write-Output &amp;ldquo;Failed to update GitHub&amp;rdquo;
+}&lt;/p&gt;
+&lt;p&gt;I use Get-Content Set-Content as I had errors with the Update-ModuleManifest but Adam Murray &lt;a class="link" href="https://github.com/muzzar78" target="_blank" rel="noopener"
+&gt;g&lt;/a&gt; | &lt;a class="link" href="https://twitter.com/muzzar78" target="_blank" rel="noopener"
+&gt;t&lt;/a&gt; uses this code to update the version using the BuildID from VSTS&lt;/p&gt;
+&lt;p&gt;$newVersion = New-Object version -ArgumentList 1, 0, 0, $env:BUILD_BUILDID
+$Public = @(Get-ChildItem -Path $ModulePath\Public\*.ps1)
+$Functions = $public.basename
+Update-ModuleManifest -Path $ModulePath\$ModuleName.psd1 -ModuleVersion $newVersion -FunctionsToExport $Functions&lt;/p&gt;
+&lt;p&gt;You can commit your change by adding your PAT token as a variable under the variables tab. Don’t forget to tick the padlock to make it a secret so it is not displayed in the logs&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/20-variables.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/20-variables.png"
+loading="lazy"
+alt="20 - variables.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="sign-the-code-with-a-certificate"&gt;Sign the code with a certificate
+&lt;/h2&gt;&lt;p&gt;The SQL Collaborative uses a code signing certificate from &lt;a class="link" href="https://digicert.com/" target="_blank" rel="noopener"
+&gt;DigiCert&lt;/a&gt; who allow MVPs to use one for free to sign their code for open source projects, Thank You. We had to upload the certificate to the secure files store in the VSTS library. Click on library, secure files and the blue +Secure File button&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/21-secure-file-store.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/21-secure-file-store.png"
+loading="lazy"
+alt="21 - secure file store.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;You also need to add the password as a variable under the variables tab as above. Again don’t forget to tick the padlock to make it a secret so it is not displayed in the logs&lt;/p&gt;
+&lt;p&gt;Then you need to add a task to download the secure file. Click on the + sign next to Phase 1 and search for secure&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/22-download-secure-file.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/22-download-secure-file.png"
+loading="lazy"
+alt="22 download secure file.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;choose the file from the drop down&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/23-download-secure-file.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/23-download-secure-file.png"
+loading="lazy"
+alt="23 - download secure file.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Next we need to import the certificate and sign the code. I use a PowerShell task for this with the following code&lt;/p&gt;
+&lt;p&gt;$ErrorActionPreference = &amp;lsquo;Stop&amp;rsquo;
+# read in the certificate from a pre-existing PFX file
+# I have checked this with @IISResetMe and this does not go in the store only memory
+$cert = [System.Security.Cryptography.X509Certificates.X509Certificate2]::new(&amp;quot;$(Agent.WorkFolder)\_temp\dbatools-code-signing-cert.pfx&amp;rdquo;,&amp;quot;$(CertPassword)&amp;quot;)&lt;/p&gt;
+&lt;p&gt;try {
+Write-Output &amp;ldquo;Signing Files&amp;rdquo;
+# find all scripts in your module&amp;hellip;
+Get-ChildItem -Filter *.ps1 -Include *.ps1 -Recurse -ErrorAction SilentlyContinue |
+# &amp;hellip;that do not have a signature yet&amp;hellip;
+Where-Object {
+($_ | Get-AuthenticodeSignature).Status -eq &amp;lsquo;NotSigned&amp;rsquo;
+} |
+# and apply one
+# (note that we added -WhatIf so no signing occurs. Remove this only if you
+# really want to add digital signatures!)
+Set-AuthenticodeSignature -Certificate $cert
+Write-Output &amp;ldquo;Signed Files&amp;rdquo;
+}
+catch {
+$_ | Format-List -Force
+Write-Error &amp;ldquo;Failed to sign scripts&amp;rdquo;
+}&lt;/p&gt;
+&lt;p&gt;which will import the certificate into memory and sign all of the scripts in the module folder.&lt;/p&gt;
+&lt;h2 id="publish-your-artifact"&gt;Publish your artifact
+&lt;/h2&gt;&lt;p&gt;The last step of the master branch build publishes the artifact (your signed module) to VSTS ready for the release task. Again, click the + sign next to Phase one and choose the Publish Artifact task not the deprecated copy and publish artifact task and give the artifact a useful name&lt;/p&gt;
+&lt;h2 id="24---publish-artifactpng"&gt;&lt;a class="link" href="assets/uploads/2018/05/24-publish-artifact.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/24-publish-artifact.png"
+loading="lazy"
+alt="24 - publish artifact.png"
+&gt;&lt;/a&gt;
+&lt;/h2&gt;&lt;p&gt;Don’t forget to set the trigger for the master build as well following the same steps as the development build above&lt;/p&gt;
+&lt;h2 id="publish-to-the-powershell-gallery"&gt;Publish to the PowerShell Gallery
+&lt;/h2&gt;&lt;p&gt;Next we create a release to trigger when there is an artifact ready and publish to the PowerShell Gallery.&lt;/p&gt;
+&lt;p&gt;Click the Releases tab and New Definition&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/25-Reelase-creation.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/25-Reelase-creation.png"
+loading="lazy"
+alt="25 - Reelase creation"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Choose an empty process and name the release definition appropriately&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/26-Release-name-empty-process.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/26-Release-name-empty-process.png"
+loading="lazy"
+alt="26 Release name empty process.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Now click on the artifact and choose the master build definition. If you have not run a build you will get an error like below but dont worry click add.&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/27-add-artifact.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/27-add-artifact.png"
+loading="lazy"
+alt="27 - add artifact.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Click on the lightning bolt next to the artifact to open the continuous deployment trigger&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/28-Choose-lightning-bolt.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/28-Choose-lightning-bolt.png"
+loading="lazy"
+alt="28 - Choose lightning bolt"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;and turn on Continuous Deployment so that when an artifact has been created with an updated module version and signed code it is published to the gallery&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/28-Continuous-deployment-trigger.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/28-Continuous-deployment-trigger.png"
+loading="lazy"
+alt="28 - Continuous deployment trigger"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Next, click on the environment and name it appropriately and then click on the + sign next to Agent Phase and choose a PowerShell step&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/29-PowerShell-Publish-step.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/29-PowerShell-Publish-step.png"
+loading="lazy"
+alt="29 - PowerShell Publish step"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;You may wonder why I dont choose the PowerShell Gallery Packager task. There are two reasons. First I need to install the required modules for dbachecks (dbatools, PSFramework, Pester) prior to publishing and second it appears that the API Key is stored in plain text&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/30-PowerShell-Gallery-Publisher.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/30-PowerShell-Gallery-Publisher.png"
+loading="lazy"
+alt="30 - PowerShell Gallery Publisher"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;I save my API key for the PowerShell Gallery as a variable again making sure to tick the padlock to make it a secret&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/31-API-Key-variable.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/31-API-Key-variable.png"
+loading="lazy"
+alt="31 - API Key variable.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;and then use the following code to install the required modules and publish the module to the gallery&lt;/p&gt;
+&lt;p&gt;Install-Module dbatools -Scope CurrentUser -Force
+Install-Module Pester -Scope CurrentUser -SkipPublisherCheck -Force
+Install-Module PSFramework -Scope CurrentUser -Force&lt;/p&gt;
+&lt;p&gt;Publish-Module -Path &amp;ldquo;$(System.DefaultWorkingDirectory)/Master - Version Update, Signing and Publish Artifact/dbachecks&amp;rdquo; -NuGetApiKey &amp;ldquo;$(GalleryApiKey)&amp;rdquo;&lt;/p&gt;
+&lt;p&gt;Thats it 🙂&lt;/p&gt;
+&lt;p&gt;Now we have a process that will automatically run our Pester tests when we commit or merge to the development branch and then update our module version number and sign our code and publish to the PowerShell Gallery when we commit or merge to the master branch&lt;/p&gt;
+&lt;h2 id="added-extra--dashboard"&gt;Added Extra – Dashboard
+&lt;/h2&gt;&lt;p&gt;I like to create dashboards in VSTS to show the progress of the various definitions. You can do this under the dashboard tab. Click edit and choose or search for widgets and add them to the dashboard&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/32-Dashboard.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/32-Dashboard.png"
+loading="lazy"
+alt="32 - Dashboard.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;h2 id="added-extra--badges"&gt;Added Extra – Badges
+&lt;/h2&gt;&lt;p&gt;You can also enable badges for displaying on your readme in GitHub (or VSTS). For the build defintions this is under the options tab.&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/33-Build-badges.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/33-Build-badges.png"
+loading="lazy"
+alt="33 - Build badges"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;for the release definitions, click the environment and then options and integrations&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/34-Release-Badge.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/34-Release-Badge.png"
+loading="lazy"
+alt="34 - Release Badge"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;You can then copy the URL and use it in your readme &lt;a class="link" href="https://github.com/dataplat/dbachecks" target="_blank" rel="noopener"
+&gt;like this on dbachecks&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a class="link" href="assets/uploads/2018/05/35-dbachecks-readme-badges.png" &gt;&lt;img src="https://dbachecks.io/assets/uploads/2018/05/35-dbachecks-readme-badges.png"
+loading="lazy"
+alt="35 - dbachecks readme badges.png"
+&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The SQL Collaborative has joined the preview of enabling public access to VSTS projects as &lt;a class="link" href="https://blogs.msdn.microsoft.com/devops/2018/04/27/vsts-public-projects-limited-preview/" target="_blank" rel="noopener"
+&gt;detailed in this blog post&lt;/a&gt; So you can &lt;a class="link" href="https://dataplat.visualstudio.com/dbachecks/dbachecks%20Team/_build" target="_blank" rel="noopener"
+&gt;see the dbachecks build and release without the need to log in&lt;/a&gt; and soon &lt;a class="link" href="https://dataplat.visualstudio.com/dbatools/_build" target="_blank" rel="noopener"
+&gt;the dbatools process as well&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;I hope you found this useful and if you have any questions or comments please feel free to contact me&lt;/p&gt;
+&lt;p&gt;Happy Automating!&lt;/p&gt;</description></item></channel></rss>
